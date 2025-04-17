@@ -41,12 +41,18 @@ export async function updateSession(request: NextRequest) {
 
     //TODO: could I just move these paths to the middleware matcher?
     const unprotected_routes = new Set(["/", "/login", "/auth", "/signup"]);
-    if (user == null) {
-        if (!unprotected_routes.has(request.nextUrl.pathname)) {
-            const url = request.nextUrl;
-            url.pathname = "/login";
-            return NextResponse.redirect(url);
-        }
+
+    // logged in users be redirected to the dashboard when accesing the landing page or login related pages
+    if (user && unprotected_routes.has(request.nextUrl.pathname)) {
+        const url = request.nextUrl;
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+    }
+    // only logged in users can access unprocted routes
+    if (!user && !unprotected_routes.has(request.nextUrl.pathname)) {
+        const url = request.nextUrl;
+        url.pathname = "/login";
+        return NextResponse.redirect(url);
     }
 
     // IMPORTANT: You *must* return the supabaseResponse object as it is.

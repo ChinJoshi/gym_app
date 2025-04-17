@@ -10,29 +10,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { signup } from "@/app/signup/action";
+import { authenticate } from "@/app/(unprotected)/login/action";
 import { useActionState } from "react";
 
 export default function Page() {
-    const [actionResult, formAction] = useActionState(signup, undefined);
+    const [actionResult, formAction] = useActionState(authenticate, undefined);
     return (
         <div className="grow flex justify-center items-center">
             <form action={formAction}>
                 <Card className="w-[350px]">
                     <CardHeader>
-                        <CardTitle>Sign up</CardTitle>
+                        <CardTitle>Log in</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="grid w-full items-center gap-4">
-                            {/* <div className="flex flex-col space-y-1.5">
-                                <Label htmlFor="username">Username</Label>
-                                <Input
-                                    type="text"
-                                    id="username"
-                                    name="username"
-                                    placeholder="username"
-                                />
-                            </div> */}
                             <div className="flex flex-col space-y-1.5">
                                 <Label htmlFor="email">Email</Label>
                                 <Input
@@ -54,7 +45,7 @@ export default function Page() {
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col">
-                        <Button>Sign up</Button>
+                        <Button>Sign in</Button>
                         <div>{actionResult && <div>{actionResult}</div>}</div>
                     </CardFooter>
                 </Card>
