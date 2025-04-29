@@ -1,96 +1,108 @@
 import {
     pgTable,
-    varchar,
-    doublePrecision,
-    integer,
-    timestamp,
-    pgSchema,
     uuid,
+    varchar,
+    integer,
+    doublePrecision,
+    timestamp,
+    unique,
 } from "drizzle-orm/pg-core";
+import { users } from "@/db/auth.schema";
 
-//this table will not be managed by drizzle kit since by default drizzle kit onyl manages pg tables in the public schema
-const authSchema = pgSchema("auth");
-const users = authSchema.table("users", {
-    id: uuid("id").primaryKey(),
-});
+// TODO: change the name of "workouts" to "sessions"
+// TODO: add profiles table
 
-// routines consist of planned exercises
+// --- public.routines ---
 export const routines = pgTable("routines", {
-    id: uuid().notNull().primaryKey(),
-    name: varchar().notNull(),
-});
-
-// planned exercises consist of planned sets
-export const planned_exercises = pgTable("planned_exercises", {
-    id: uuid().notNull().primaryKey(),
-    name: varchar().notNull(),
-});
-
-// planned sets consist of weights, reps, the planned exercise they're in, and at what order in the planned exercise they're in
-export const planned_sets = pgTable("planned_sets", {
-    id: uuid().notNull().primaryKey(),
-    planned_exercise_id: varchar().references(() => planned_exercises.id),
-    weight: doublePrecision().notNull(),
-    reps: integer().notNull(),
-    order: integer().notNull().unique(),
-});
-
-//routine exercises relates routines with exercises and the order that those exercises are in the routine
-export const routine_exercises = pgTable("routine_exercises", {
-    routine_id: uuid()
-        .notNull()
-        .references(() => routines.id),
-    planned_exercise_id: uuid()
-        .notNull()
-        .references(() => planned_exercises.id),
-    order: integer().notNull().unique(),
-});
-
-//
-export const completed_sets = pgTable("completed_sets", {
-    id: uuid().notNull().primaryKey(),
-    planned_set_id: uuid()
-        .notNull()
-        .references(() => planned_sets.id),
-    weight: doublePrecision().notNull(),
-    reps: integer().notNull(),
-});
-
-export const completed_exercises = pgTable("completed_exercises", {
-    id: uuid().notNull().primaryKey(),
-    planned_exercise_id: uuid()
-        .notNull()
-        .references(() => planned_exercises.id),
-});
-
-export const completed_exercises_sets = pgTable("completed_exercises_sets", {
-    completed_exercise_id: uuid()
-        .notNull()
-        .references(() => completed_exercises.id),
-    completed_set_id: uuid()
-        .notNull()
-        .references(() => completed_sets.id),
-});
-
-export const completed_workouts_exercises = pgTable(
-    "completed_workouts_exercises",
-    {
-        completed_workout_id: uuid()
-            .notNull()
-            .references(() => completed_workouts.id),
-        completed_exercise_id: uuid()
-            .notNull()
-            .references(() => completed_exercises.id),
-    }
-);
-//relates a user to a completed routine and the sets they did in that completed routine
-export const completed_workouts = pgTable("completed_workouts", {
-    id: uuid().notNull().primaryKey(),
-    timestamp: timestamp().notNull(),
-    routine_id: uuid()
-        .notNull()
-        .references(() => routines.id),
-    user_id: uuid()
+    id: uuid("id").defaultRandom().primaryKey(),
+    user_id: uuid("user_id")
         .notNull()
         .references(() => users.id),
+    name: varchar("name", { length: 255 }).notNull(),
+    created_at: timestamp("created_at").defaultNow().notNull(),
 });
+
+// --- public.exercises (catalog) ---
+export const exercises = pgTable("exercises", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name").notNull(),
+    muscle_group: varchar("muscle_group"),
+    equipment: varchar("equipment"),
+    // add muscle group, equipment, etc. as needed
+});
+
+// --- public.planned_exercises (join) ---
+export const planned_exercises = pgTable(
+    "planned_exercises",
+    {
+        id: uuid("id").defaultRandom().primaryKey(),
+        routine_id: uuid("routine_id")
+            .notNull()
+            .references(() => routines.id),
+        exercise_id: uuid("exercise_id")
+            .notNull()
+            .references(() => exercises.id),
+        sort_order: integer("sort_order").notNull(),
+    },
+    (t) => [unique().on(t.routine_id, t.sort_order)]
+);
+
+// --- public.planned_sets ---
+export const planned_sets = pgTable(
+    "planned_sets",
+    {
+        id: uuid("id").defaultRandom().primaryKey(),
+        planned_exercise_id: uuid("planned_exercise_id")
+            .notNull()
+            .references(() => planned_exercises.id),
+        weight: doublePrecision("weight"),
+        duration: integer("duration"),
+        reps: integer("reps").notNull(),
+        sort_order: integer("sort_order").notNull(),
+    },
+    (t) => [unique().on(t.planned_exercise_id, t.sort_order)]
+);
+
+// --- public.completed_workouts ---
+export const completed_workouts = pgTable("completed_workouts", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    user_id: uuid("user_id")
+        .notNull()
+        .references(() => users.id),
+    routine_id: uuid("routine_id")
+        .notNull()
+        .references(() => routines.id),
+    performed_at: timestamp("performed_at").defaultNow().notNull(),
+});
+
+// --- public.completed_exercises ---
+export const completed_exercises = pgTable(
+    "completed_exercises",
+    {
+        id: uuid("id").defaultRandom().primaryKey(),
+        completed_workout_id: uuid("completed_workout_id")
+            .notNull()
+            .references(() => completed_workouts.id),
+        exercise_id: uuid("exercise_id")
+            .notNull()
+            .references(() => exercises.id),
+        sort_order: integer("sort_order").notNull(),
+    },
+    (t) => [unique().on(t.completed_workout_id, t.sort_order)]
+);
+
+// --- public.completed_sets ---
+export const completed_sets = pgTable(
+    "completed_sets",
+    {
+        id: uuid("id").defaultRandom().primaryKey(),
+        completed_exercise_id: uuid("completed_exercise_id")
+            .notNull()
+            .references(() => completed_exercises.id),
+        weight: doublePrecision("weight"),
+        duration: integer("duration"),
+        reps: integer("reps").notNull(),
+        sort_order: integer("sort_order").notNull(),
+    },
+    (t) => [unique().on(t.completed_exercise_id, t.sort_order)]
+);
