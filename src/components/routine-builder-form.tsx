@@ -1,6 +1,12 @@
-// TODO: use react-hook-form with zod
+// according to: https://news.ycombinator.com/item?id=41978038
+// the general pattern seems to be, allow the user to input anything in a field, and show validation issues after
 "use client";
-import { useForm } from "react-hook-form";
+import {
+    useForm,
+    SubmitHandler,
+    useFieldArray,
+    useFormContext,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { routineBuilder } from "@/zod_types";
 import { z } from "zod";
@@ -12,108 +18,273 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import buildRoutine from "@/actions/build_routine";
 
 export default function RoutineBuilderForm() {
     const form = useForm<z.infer<typeof routineBuilder>>({
         resolver: zodResolver(routineBuilder),
+        defaultValues: {
+            routine_name: "",
+            exercises: [
+                {
+                    exercise: "",
+                    sets: [{ reps: "", weight: "", duration: "" }],
+                },
+            ],
+        },
     });
+
+    const exercises_field_array = useFieldArray({
+        control: form.control,
+        name: "exercises",
+    });
+
+    const onSubmitSuccess: SubmitHandler<
+        z.infer<typeof routineBuilder>
+    > = async (data) => {
+        await buildRoutine(data);
+    };
+
     return (
-        // <Form {...form}>
-        //     <Card>
-        //         <CardHeader>
-        //             <CardTitle className="text-2xl">Login</CardTitle>
-        //             {/* <CardDescription>
-        //                     Enter your email below to login to your account
-        //                 </CardDescription> */}
-        //         </CardHeader>
-        //         <CardContent>
-        //             <form onSubmit={form.handleSubmit(onSubmitSuccess)}>
-        //                 <div className="flex flex-col gap-6">
-        //                     <div className="grid gap-3">
-        //                         <FormField
-        //                             control={form.control}
-        //                             name="email"
-        //                             render={({ field }) => (
-        //                                 <FormItem>
-        //                                     <FormLabel>Email</FormLabel>
-        //                                     <FormControl>
-        //                                         <Input
-        //                                             placeholder="your@email.com"
-        //                                             {...field}
-        //                                         />
-        //                                     </FormControl>
-        //                                     <FormDescription>
-        //                                         {/* Enter your email */}
-        //                                     </FormDescription>
-        //                                     <FormMessage />
-        //                                 </FormItem>
-        //                             )}
-        //                         />
-        //                     </div>
-        //                     <div className="grid gap-3">
-        //                         <FormField
-        //                             control={form.control}
-        //                             name="password"
-        //                             render={({ field }) => (
-        //                                 <FormItem>
-        //                                     <div className="flex items-center">
-        //                                         <FormLabel>Password</FormLabel>
+        <Form {...form}>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-2xl">
+                        {form.watch("routine_name") || "Routine"}
+                    </CardTitle>
+                    <CardDescription>Build a routine</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={form.handleSubmit(onSubmitSuccess)}>
+                        <div className="flex flex-col gap-6">
+                            <div className="grid gap-3">
+                                <FormField
+                                    control={form.control}
+                                    name="routine_name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Routine Name</FormLabel>
+                                            <FormControl>
+                                                <Input {...field} />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
 
-        //                                         <Link
-        //                                             href="#"
-        //                                             className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-        //                                         >
-        //                                             Forgot your password?
-        //                                         </Link>
-        //                                     </div>
-        //                                     <FormControl>
-        //                                         <Input
-        //                                             type="password"
-        //                                             placeholder=""
-        //                                             {...field}
-        //                                         />
-        //                                     </FormControl>
-        //                                     <FormDescription>
-        //                                         {/* Enter your password */}
-        //                                     </FormDescription>
-        //                                     <FormMessage />
-        //                                 </FormItem>
-        //                             )}
-        //                         />
-        //                         {form.formState.errors.root && (
-        //                             <FormMessage>
-        //                                 {form.formState.errors.root.message}
-        //                             </FormMessage>
-        //                         )}
-        //                     </div>
+                            <div className="grid gap-3">
+                                {exercises_field_array.fields.map(
+                                    (exercise, exercise_index) => (
+                                        <FormField
+                                            key={exercise.id}
+                                            control={form.control}
+                                            name={`exercises.${exercise_index}.exercise`}
+                                            render={({ field }) => {
+                                                return (
+                                                    <div>
+                                                        <FormItem>
+                                                            <div className="flex items-center">
+                                                                <FormLabel>
+                                                                    Exercise{" "}
+                                                                    {exercise_index +
+                                                                        1}
+                                                                </FormLabel>
+                                                            </div>
+                                                            <div className="flex flex-row gap-3 my-2">
+                                                                <FormControl>
+                                                                    <Input
+                                                                        {...field}
+                                                                    />
+                                                                </FormControl>
+                                                                <Button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        exercises_field_array.insert(
+                                                                            exercise_index +
+                                                                                1,
+                                                                            {
+                                                                                exercise:
+                                                                                    "",
+                                                                                sets: [
+                                                                                    {
+                                                                                        reps: "",
+                                                                                        weight: "",
+                                                                                        duration:
+                                                                                            "",
+                                                                                    },
+                                                                                ],
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    +
+                                                                </Button>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="destructive"
+                                                                    onClick={() => {
+                                                                        if (
+                                                                            exercises_field_array
+                                                                                .fields
+                                                                                .length >
+                                                                            1
+                                                                        ) {
+                                                                            exercises_field_array.remove(
+                                                                                exercise_index
+                                                                            );
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    -
+                                                                </Button>
+                                                            </div>
+                                                        </FormItem>
 
-        //                     <div className="flex flex-col gap-3">
-        //                         <Button
-        //                             disabled={form.formState.isSubmitting}
-        //                             type="submit"
-        //                             className="w-full"
-        //                         >
-        //                             Login
-        //                         </Button>
+                                                        <NestedSets
+                                                            exercise_index={
+                                                                exercise_index
+                                                            }
+                                                        />
+                                                    </div>
+                                                );
+                                            }}
+                                        />
+                                    )
+                                )}
+                                {form.formState.errors.root && (
+                                    <FormMessage>
+                                        {form.formState.errors.root.message}
+                                    </FormMessage>
+                                )}
+                            </div>
 
-        //                         {/* <Button variant="outline" className="w-full">
-        //                             Login with Google
-        //                         </Button> */}
-        //                     </div>
-        //                 </div>
-        //                 <div className="mt-4 text-center text-sm">
-        //                     Don&apos;t have an account?{" "}
-        //                     <Link
-        //                         href="/signup"
-        //                         className="underline underline-offset-4"
-        //                     >
-        //                         Sign up
-        //                     </Link>
-        //                 </div>
-        //             </form>
-        //         </CardContent>
-        //     </Card>
-        // </Form>
+                            <div className="flex flex-col gap-3">
+                                <Button
+                                    disabled={form.formState.isSubmitting}
+                                    type="submit"
+                                    className="w-full"
+                                >
+                                    Create Routine
+                                </Button>
+                            </div>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+        </Form>
+    );
+}
+
+function NestedSets({ exercise_index }: { exercise_index: number }) {
+    const form = useFormContext<z.infer<typeof routineBuilder>>();
+    const sets_field_array = useFieldArray({
+        control: form.control,
+        name: `exercises.${exercise_index}.sets` as const,
+    });
+
+    return (
+        <div>
+            {sets_field_array.fields.map((set, set_index) => (
+                <div
+                    key={set.id}
+                    className="flex flex-row gap-3 items-end my-2"
+                >
+                    <Label className="my-5">Set {set_index + 1}</Label>
+                    <FormField
+                        control={form.control}
+                        name={
+                            `exercises.${exercise_index}.sets.${set_index}.reps` as const
+                        }
+                        render={({ field }) => {
+                            return (
+                                <div>
+                                    <FormItem>
+                                        <div className="flex items-center">
+                                            <FormLabel>Reps </FormLabel>
+                                        </div>
+                                        <FormControl>
+                                            <Input {...field} placeholder="0" />
+                                        </FormControl>
+                                    </FormItem>
+                                </div>
+                            );
+                        }}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name={`exercises.${exercise_index}.sets.${set_index}.weight`}
+                        render={({ field }) => {
+                            return (
+                                <div>
+                                    <FormItem>
+                                        <div className="flex items-center">
+                                            <FormLabel>Weight </FormLabel>
+                                        </div>
+                                        <FormControl>
+                                            <Input {...field} placeholder="0" />
+                                        </FormControl>
+                                    </FormItem>
+                                </div>
+                            );
+                        }}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name={`exercises.${exercise_index}.sets.${set_index}.duration`}
+                        render={({ field }) => {
+                            return (
+                                <div>
+                                    <FormItem>
+                                        <div className="flex items-center">
+                                            <FormLabel>Duration </FormLabel>
+                                        </div>
+                                        <FormControl>
+                                            <Input {...field} placeholder="0" />
+                                        </FormControl>
+                                    </FormItem>
+                                </div>
+                            );
+                        }}
+                    />
+                    <div className="flex flex-row gap-3 my-2">
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                sets_field_array.insert(set_index + 1, {
+                                    reps: "",
+                                    weight: "",
+                                    duration: "",
+                                });
+                            }}
+                        >
+                            +
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={() => {
+                                if (sets_field_array.fields.length > 1) {
+                                    sets_field_array.remove(set_index);
+                                }
+                            }}
+                        >
+                            -
+                        </Button>
+                    </div>
+                </div>
+            ))}
+        </div>
     );
 }

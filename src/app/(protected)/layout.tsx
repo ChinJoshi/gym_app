@@ -3,9 +3,8 @@ import "../globals.css";
 import Footer from "@/components/ui/footer";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/server";
 import { ThemeProvider } from "@/components/theme_provider";
-import { redirect } from "next/navigation";
+import { signOut } from "@/actions/signout";
 
 export const metadata: Metadata = {
     title: "Gym app",
@@ -17,12 +16,6 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    async function signOutAction() {
-        "use server";
-        const supabase = await createClient();
-        await supabase.auth.signOut();
-        return redirect("/");
-    }
     return (
         <html lang="en" suppressHydrationWarning>
             <body className="flex flex-col min-h-svh">
@@ -37,7 +30,7 @@ export default async function RootLayout({
                             Jag app
                         </Link>
                         {
-                            <form action={signOutAction} className="m-6">
+                            <form action={signOut} className="m-6">
                                 <Button type="submit">Log out</Button>
                             </form>
                         }

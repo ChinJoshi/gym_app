@@ -6,6 +6,7 @@ import {
     doublePrecision,
     timestamp,
     unique,
+    boolean,
 } from "drizzle-orm/pg-core";
 import { users } from "@/db/auth.schema";
 
@@ -28,6 +29,8 @@ export const exercises = pgTable("exercises", {
     name: varchar("name").notNull(),
     muscle_group: varchar("muscle_group"),
     equipment: varchar("equipment"),
+    isCustom: boolean("isCustom").default(false),
+    user_id: uuid("user_id").references(() => users.id),
     // add muscle group, equipment, etc. as needed
 });
 

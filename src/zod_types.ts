@@ -7,16 +7,26 @@ export const loginUser = z.object({
         .min(8, { message: "Password must be at least 8 characters long" }),
 });
 
+const numericString = (message: string) => z.string().regex(/^\d*$/, message);
+
 export const routineBuilder = z.object({
-    routine_name: z.string(),
+    routine_name: z.string().min(1, {
+        message: "Routine name must include at least 1 character",
+    }),
     exercises: z.array(
         z.object({
-            exercise: z.string(),
+            exercise: z.string().min(1, {
+                message: "Exercise must include at least 1 character",
+            }),
             sets: z.array(
                 z.object({
-                    reps: z.number(),
-                    weight: z.number().nullable(),
-                    duration: z.number().nullable(),
+                    reps: numericString("Reps must be a number").min(1, {
+                        message: "Sets must include at least 1 rep",
+                    }),
+                    weight: numericString("Weight must be a number").optional(),
+                    duration: numericString(
+                        "Duration must be a number"
+                    ).optional(),
                 })
             ),
         })
