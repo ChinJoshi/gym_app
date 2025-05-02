@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeProvider } from "@/components/theme_provider";
 
 export const metadata: Metadata = {
-    title: "Gym app",
+    title: "The Gym",
     description: "Track your progress",
 };
 
