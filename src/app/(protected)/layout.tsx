@@ -27,7 +27,7 @@ export default async function RootLayout({
                 >
                     <div className="flex flex-row justify-between">
                         <Link href="/" className="text-2xl font-extrabold m-6">
-                            Jag app
+                            The Gym
                         </Link>
                         {
                             <form action={signOut} className="m-6">

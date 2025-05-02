@@ -18,7 +18,7 @@ export default function Footer() {
                 </Link>
             </div> */}
             <div className="basis-[25ch] max-w-[25ch] text-center text-xs">
-                &copy; Gym App
+                &copy; The Gym
             </div>
             {/* <div className="basis-[25ch] max-w-[25ch] text-right text-xs">
                 <Link href="https://linkedin.com/in/cshjoshi">

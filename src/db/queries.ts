@@ -8,6 +8,7 @@ import {
 import { routineBuilder } from "@/zod_types";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { sql, eq, desc, asc } from "drizzle-orm";
 
 export async function createRoutine(
     routine: z.infer<typeof routineBuilder>,
@@ -68,4 +69,23 @@ export async function createRoutine(
         }
     });
     return result;
+}
+
+export async function getRoutines(userId: string) {
+    const results = await db
+        .select()
+        .from(routines)
+        .where(eq(routines.user_id, userId))
+        .orderBy(desc(routines.created_at));
+    return results;
+}
+
+export async function getPlannedExercises(routineId: string) {
+    const results = await db
+        .select()
+        .from(planned_exercises)
+        .where(eq(planned_exercises.routine_id, routineId))
+        .leftJoin(exercises, eq(planned_exercises.exercise_id, exercises.id))
+        .orderBy(asc(planned_exercises.sort_order));
+    return results;
 }

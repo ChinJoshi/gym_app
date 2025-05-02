@@ -7,17 +7,21 @@ import {
     CardFooter,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { getRoutines, getPlannedExercises } from "@/db/queries";
+import { createClient } from "@/lib/supabase/server";
 
-// import { createClient } from "@/lib/supabase/server";
+//TODO: put routine cards in a suspense
 export default async function Page() {
-    // const supabase = await createClient();
-    // const user = await supabase.auth.getSession();
+    const supabase = await createClient();
+    const session = await supabase.auth.getSession();
+    const userId = session.data.session!.user.id;
+    const routines = await getRoutines(userId);
     // your routines
     // your workouts
     // yout trends
     return (
-        <div className="flex flex-row justify-center w-view gap-6 m-6">
-            <Card className="w-[350]">
+        <div className="flex flex-row justify-center w-full gap-6 m-6">
+            <Card className="w-full">
                 <CardHeader>
                     <CardTitle className="flex flex-row justify-between items-center">
                         <div>Routines</div>
@@ -27,23 +31,41 @@ export default async function Page() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Routine Name</CardTitle>
-                        </CardHeader>
-                        <CardContent> Routine contents </CardContent>
-                        <CardFooter>
-                            <Button>Start Routine</Button>
-                        </CardFooter>
-                    </Card>
+                    {routines.map(async (routine) => {
+                        const plannedExercises = await getPlannedExercises(
+                            routine.id
+                        );
+                        return (
+                            <Card key={routine.id} className="my-3">
+                                <CardHeader>
+                                    <CardTitle>{routine.name}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {plannedExercises.map((plannedExercise) => (
+                                        <div
+                                            key={
+                                                plannedExercise
+                                                    .planned_exercises.id
+                                            }
+                                        >
+                                            {plannedExercise.exercises?.name}
+                                        </div>
+                                    ))}
+                                </CardContent>
+                                <CardFooter>
+                                    <Button>Start</Button>
+                                </CardFooter>
+                            </Card>
+                        );
+                    })}
                 </CardContent>
             </Card>
-            <Card className="w-[350]">
+            <Card className="w-full">
                 <CardHeader>
                     <CardTitle>Workouts</CardTitle>
                 </CardHeader>
             </Card>
-            <Card className="w-[350]">
+            <Card className="w-full">
                 <CardHeader>
                     <CardTitle>Trends</CardTitle>
                 </CardHeader>

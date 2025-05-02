@@ -48,7 +48,7 @@ export async function updateSession(request: NextRequest) {
         url.pathname = "/dashboard";
         return NextResponse.redirect(url);
     }
-    // only logged in users can access unprocted routes
+    // logged out users can't access unprotected routes
     if (!user && !unprotected_routes.has(request.nextUrl.pathname)) {
         const url = request.nextUrl;
         url.pathname = "/login";

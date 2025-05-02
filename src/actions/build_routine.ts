@@ -3,6 +3,7 @@ import { routineBuilder } from "@/zod_types";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 import { createRoutine } from "@/db/queries";
+import { redirect } from "next/navigation";
 
 export default async function buildRoutine(
     routineData: z.infer<typeof routineBuilder>
@@ -18,6 +19,7 @@ export default async function buildRoutine(
             validatedRoutine.data,
             session.data.session.user.id
         );
+        redirect("/dashboard");
     } else {
         throw new Error(validatedRoutine.error.message);
     }
