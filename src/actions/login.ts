@@ -21,7 +21,15 @@ export async function login(prevState: string | undefined, formData: FormData) {
         parsedCredentials.data
     );
     if (error) {
-        console.log("supabase auth denied credentials on login");
+        console.log("supabase auth denied credentials on login:", error);
+        
+        // Check for unverified account error
+        if (error.code === "email_not_confirmed") {
+            const email = parsedCredentials.data.email;
+            console.log("Redirecting unverified user to verification page");
+            redirect(`/verify?email=${encodeURIComponent(email)}`);
+        }
+        
         return { error: "Invalid email or password" };
     }
     redirect("/dashboard");
