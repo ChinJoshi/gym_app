@@ -8,7 +8,7 @@ import {
 import { routineBuilder } from "@/zod_types";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import { sql, eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc } from "drizzle-orm";
 
 export async function createRoutine(
     routine: z.infer<typeof routineBuilder>,
