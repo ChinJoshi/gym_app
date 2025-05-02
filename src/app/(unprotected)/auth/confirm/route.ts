@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
             console.log("redirecting to", next);
             // redirect user to specified redirect URL or root of app
             redirect(next);
+        } else {
+            console.log(error);
         }
     }
-
-    console.log("error");
     // redirect the user to an error page with some instructions
     redirect("/");
 }
