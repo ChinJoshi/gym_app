@@ -34,6 +34,10 @@ export async function signup(
         const { error } = await supabaseClient.auth.admin.deleteUser(
             unverifiedEmailUser[0].id
         );
+        if (error) {
+            console.log("error deleting unverified email user");
+            console.log(error);
+        }
     }
 
     const { error } = await supabaseClient.auth.signUp(parsedCredentials.data);
