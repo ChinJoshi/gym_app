@@ -5,10 +5,11 @@ import {
     planned_exercises,
     exercises,
 } from "@/db/schema";
+import { users } from "@/db/auth.schema";
 import { routineBuilder } from "@/zod_types";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, isNull, and } from "drizzle-orm";
 
 export async function createRoutine(
     routine: z.infer<typeof routineBuilder>,
@@ -87,5 +88,13 @@ export async function getPlannedExercises(routineId: string) {
         .where(eq(planned_exercises.routine_id, routineId))
         .leftJoin(exercises, eq(planned_exercises.exercise_id, exercises.id))
         .orderBy(asc(planned_exercises.sort_order));
+    return results;
+}
+
+export async function checkUnverifiedEmailExists(email: string) {
+    const results = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.email, email), isNull(users.email_confirmed_at)));
     return results;
 }
