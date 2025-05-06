@@ -29,6 +29,10 @@ export async function createClient(isAdmin?: boolean) {
             }
         );
     } else {
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+        }
+        console.log("creating admin client");
         return createClientSupabase(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!,
