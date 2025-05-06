@@ -36,6 +36,7 @@ export function SignupForm({
         data,
         event
     ) => {
+        console.log("signup form submitted");
         const formElement = event?.target as HTMLFormElement;
         const formData = new FormData(formElement);
         const result: { error: string } | undefined = await signup(
