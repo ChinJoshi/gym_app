@@ -28,6 +28,5 @@ export async function signup(
         console.log(error);
         return { error: "Signup unsuccessful" };
     }
-    // TODO: figure out way of
-    redirect("/dashboard");
+    redirect("/verify?email=" + parsedCredentials.data.email);
 }

@@ -45,6 +45,7 @@ export async function updateSession(request: NextRequest) {
         "/login",
         "/auth/confirm",
         "/signup",
+        "/verify",
     ]);
 
     // logged in users be redirected to the dashboard when accesing the landing page or login related pages

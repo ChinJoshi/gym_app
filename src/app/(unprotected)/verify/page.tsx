@@ -46,8 +46,8 @@ function VerifyContent() {
 
                 <div className="text-center text-sm text-gray-500">
                     <p>
-                        Didn&apos;t receive an email? Check your spam folder
-                        or request a new verification link.
+                        Didn&apos;t receive an email? Check your spam folder or
+                        request a new verification link.
                     </p>
                 </div>
 
@@ -75,14 +75,18 @@ function VerifyContent() {
 // Main page component with suspense boundary
 export default function VerifyPage() {
     return (
-        <div className="flex items-center justify-center min-h-screen px-4">
-            <Suspense fallback={
-                <Card className="w-full max-w-md">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-bold text-center">Loading...</CardTitle>
-                    </CardHeader>
-                </Card>
-            }>
+        <div className="flex flex-row items-center justify-center min-h-screen min-w-full px-4">
+            <Suspense
+                fallback={
+                    <Card className="w-full max-w-md">
+                        <CardHeader>
+                            <CardTitle className="text-2xl font-bold text-center">
+                                Loading...
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                }
+            >
                 <VerifyContent />
             </Suspense>
         </div>
