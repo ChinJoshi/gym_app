@@ -3,6 +3,7 @@ import { loginUser } from "@/zod_types";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { checkUnverifiedEmailExists } from "@/db/queries";
+import { create } from "domain";
 
 export async function signup(
     prevState: string | undefined,
@@ -10,7 +11,7 @@ export async function signup(
 ) {
     console.log(formData);
     const supabaseClient = await createClient();
-
+    const supabaseAdminClient = await createClient(true);
     // Convert FormData to a plain object
     const formDataObject = {
         email: formData.get("email"),
@@ -31,7 +32,7 @@ export async function signup(
     );
     if (unverifiedEmailUser.length > 0) {
         console.log("deleting unverified email user");
-        const { error } = await supabaseClient.auth.admin.deleteUser(
+        const { error } = await supabaseAdminClient.auth.admin.deleteUser(
             unverifiedEmailUser[0].id
         );
         if (error) {
