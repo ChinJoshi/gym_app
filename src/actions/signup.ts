@@ -3,7 +3,6 @@ import { loginUser } from "@/zod_types";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { checkUnverifiedEmailExists } from "@/db/queries";
-import { create } from "domain";
 
 export async function signup(
     prevState: string | undefined,
