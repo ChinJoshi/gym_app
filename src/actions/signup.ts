@@ -25,6 +25,7 @@ export async function signup(
 
     // problem: when user signs up with wrong email, then another user who acutally has that email signsup, their account is still linked with the old password from the first person
     // solution: if signup occurs for an unverified email, delete the old unverified account and create a new one with the new metadata and password
+    //TODO: didn't work, fix later
     const unverifiedEmailUser = await checkUnverifiedEmailExists(
         parsedCredentials.data.email
     );
