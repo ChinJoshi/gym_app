@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "next dev --turbopack",
+        "dev": "npm run db:migrate && next dev --turbopack",
         "build": "npm run db:migrate && next build",
         "start": "next start",
         "lint": "next lint",
@@ -47,6 +47,7 @@
         "drizzle-kit": "^0.30.6",
         "eslint": "^9",
         "eslint-config-next": "15.3.0",
+        "supabase": "^2.22.12",
         "tailwindcss": "^4",
         "typescript": "^5"
     }
