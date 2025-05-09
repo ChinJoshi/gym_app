@@ -1,3 +1,4 @@
+# TODO: move the vercel deploy to this action as well, we should also move env vars that are in vercel to the gh action evironment secrets and use the gh action environmennt secrets as our single deploy and secret source of truth
 name: supabase config CI
 on:
     push:
