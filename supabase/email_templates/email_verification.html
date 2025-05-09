@@ -1,0 +1,9 @@
+<h2>Verify your Gym App account</h2>
+
+<p>Follow this link or paste it into your browser to verify your account:</p>
+<p>
+    <a
+        href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&{{.Email}}"
+        >Verify</a
+    >
+</p>
