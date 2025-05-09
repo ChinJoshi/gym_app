@@ -20,8 +20,8 @@ jobs:
             - name: Checkout repo to runner
               uses: actions/checkout@v4
             - name: Install supabase cli
-              run: npm install supabase --save-dev
+              run: npm install supabase
             - name: Link supabase project
-              run: supabase link --project-ref
+              run: npx supabase link --project-ref
             - name: Push supabase config
-              run: supabase config push
+              run: npx supabase config push
