@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "dev": "npm run db:migrate && next dev --turbopack",
-        "build": "npm run db:migrate && next build",
+        "build": "node -e \"console.log('URL in build:',process.env.DATABASE_URL?.slice(0,60))\" && drizzle-kit migrate && next build",
         "start": "next start",
         "lint": "next lint",
         "db:generate": "drizzle-kit generate",
