@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 export default async function Page({
     params,
 }: {
-    params: { sessionId: string };
+    params: Promise<{ sessionId: string }>;
 }) {
     const { sessionId } = await params;
     return (

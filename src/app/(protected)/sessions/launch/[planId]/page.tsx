@@ -6,7 +6,11 @@ import { redirect } from "next/navigation";
 // if a session is already in progress, tell the user a session is already in progress and give them to option to end it or abandon it
 // else start a new session based on the plan the user started it from
 
-export default async function Page({ params }: { params: { planId: string } }) {
+export default async function Page({
+    params,
+}: {
+    params: Promise<{ planId: string }>;
+}) {
     const { planId } = await params;
     const supabase = await createClient();
     const user_session = await supabase.auth.getSession();
