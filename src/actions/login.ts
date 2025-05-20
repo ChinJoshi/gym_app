@@ -1,5 +1,5 @@
 "use server";
-import { loginUser } from "@/zod_types";
+import { loginUser } from "@/zod-types";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 

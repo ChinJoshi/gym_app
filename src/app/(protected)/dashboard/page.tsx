@@ -7,38 +7,40 @@ import {
     CardFooter,
 } from "@/components/ui/card";
 import Link from "next/link";
-import { getRoutines, getPlannedExercises } from "@/db/queries";
+import { getPlans, getPlannedExercises } from "@/db/queries";
 import { createClient } from "@/lib/supabase/server";
+import { StartSessionButton } from "@/components/start-session-button";
 
-//TODO: put routine cards in a suspense
+//TODO: put plan cards in a suspense
+//TODO: convert all actions to trpc
 export default async function Page() {
     const supabase = await createClient();
     const session = await supabase.auth.getSession();
     const userId = session.data.session!.user.id;
-    const routines = await getRoutines(userId);
-    // your routines
-    // your workouts
+    const plans = await getPlans(userId);
+    // your plans
+    // your sessions
     // yout trends
     return (
-        <div className="flex flex-row justify-center w-full gap-6 m-6">
+        <div className="flex flex-col sm:flex-row justify-center w-full gap-6 m-6">
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle className="flex flex-row justify-between items-center">
-                        <div>Routines</div>
-                        <Link href="/routine/build">
+                        <div>Plans</div>
+                        <Link href="/plan/build">
                             <Button className="font-extrabold">+</Button>
                         </Link>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {routines.map(async (routine) => {
+                    {plans.map(async (plan) => {
                         const plannedExercises = await getPlannedExercises(
-                            routine.id
+                            plan.id
                         );
                         return (
-                            <Card key={routine.id} className="my-3">
+                            <Card key={plan.id} className="my-3">
                                 <CardHeader>
-                                    <CardTitle>{routine.name}</CardTitle>
+                                    <CardTitle>{plan.name}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {plannedExercises.map((plannedExercise) => (
@@ -52,8 +54,14 @@ export default async function Page() {
                                         </div>
                                     ))}
                                 </CardContent>
+                                {/* we should make a toast show up if the */}
                                 <CardFooter>
-                                    <Button>Start</Button>
+                                    {/* <Link href={`/sessions/launch/${plan.id}`}>
+                                        <Button>Start</Button>
+                                    </Link> */}
+                                    <StartSessionButton
+                                        planId={plan.id}
+                                    ></StartSessionButton>
                                 </CardFooter>
                             </Card>
                         );
@@ -62,7 +70,7 @@ export default async function Page() {
             </Card>
             <Card className="w-full">
                 <CardHeader>
-                    <CardTitle>Workouts</CardTitle>
+                    <CardTitle>Sessions</CardTitle>
                 </CardHeader>
             </Card>
             <Card className="w-full">

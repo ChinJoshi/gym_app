@@ -3,9 +3,9 @@ import "../globals.css";
 import Footer from "@/components/ui/footer";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ThemeProvider } from "@/components/theme_provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { signOut } from "@/actions/signout";
-
+import { Toaster } from "sonner";
 export const metadata: Metadata = {
     title: "The Gym",
     description: "Track your progress",
@@ -36,6 +36,7 @@ export default async function RootLayout({
                         }
                     </div>
                     <main className="grow flex">{children}</main>
+                    <Toaster />
                     <Footer />
                 </ThemeProvider>
             </body>

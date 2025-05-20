@@ -4,5 +4,5 @@ export default async function Page({
     params: Promise<{ slug: string }>;
 }) {
     const { slug } = await params;
-    return <div>Routine id: {slug}</div>;
+    return <div>Plan id: {slug}</div>;
 }

@@ -15,7 +15,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
-import { loginUser } from "@/zod_types";
+import { loginUser } from "@/zod-types";
 
 import { signup } from "@/actions/signup";
 import Link from "next/link";

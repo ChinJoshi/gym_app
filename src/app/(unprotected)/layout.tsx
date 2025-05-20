@@ -3,7 +3,7 @@ import "../globals.css";
 import Footer from "@/components/ui/footer";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ThemeProvider } from "@/components/theme_provider";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
     title: "The Gym",

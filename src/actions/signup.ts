@@ -1,5 +1,5 @@
 "use server";
-import { loginUser } from "@/zod_types";
+import { loginUser } from "@/zod-types";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import { checkUnverifiedEmailExists } from "@/db/queries";

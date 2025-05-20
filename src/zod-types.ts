@@ -9,9 +9,9 @@ export const loginUser = z.object({
 
 const numericString = (message: string) => z.string().regex(/^\d*$/, message);
 
-export const routineBuilder = z.object({
-    routine_name: z.string().min(1, {
-        message: "Routine name must include at least 1 character",
+export const planBuilder = z.object({
+    plan_name: z.string().min(1, {
+        message: "Plan name must include at least 1 character",
     }),
     exercises: z.array(
         z.object({

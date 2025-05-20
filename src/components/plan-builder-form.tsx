@@ -8,7 +8,7 @@ import {
     useFormContext,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { routineBuilder } from "@/zod_types";
+import { planBuilder } from "@/zod-types";
 import { z } from "zod";
 import {
     Form,
@@ -28,13 +28,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import buildRoutine from "@/actions/build_routine";
+import buildPlan from "@/actions/build-plan";
 
-export default function RoutineBuilderForm() {
-    const form = useForm<z.infer<typeof routineBuilder>>({
-        resolver: zodResolver(routineBuilder),
+export default function PlanBuilderForm() {
+    const form = useForm<z.infer<typeof planBuilder>>({
+        resolver: zodResolver(planBuilder),
         defaultValues: {
-            routine_name: "",
+            plan_name: "",
             exercises: [
                 {
                     exercise: "",
@@ -49,10 +49,10 @@ export default function RoutineBuilderForm() {
         name: "exercises",
     });
 
-    const onSubmitSuccess: SubmitHandler<
-        z.infer<typeof routineBuilder>
-    > = async (data) => {
-        await buildRoutine(data);
+    const onSubmitSuccess: SubmitHandler<z.infer<typeof planBuilder>> = async (
+        data
+    ) => {
+        await buildPlan(data);
     };
 
     return (
@@ -60,9 +60,9 @@ export default function RoutineBuilderForm() {
             <Card>
                 <CardHeader>
                     <CardTitle className="text-2xl">
-                        {form.watch("routine_name") || "Routine"}
+                        {form.watch("plan_name") || "Plan"}
                     </CardTitle>
-                    <CardDescription>Build a routine</CardDescription>
+                    <CardDescription>Build a plan</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={form.handleSubmit(onSubmitSuccess)}>
@@ -70,10 +70,10 @@ export default function RoutineBuilderForm() {
                             <div className="grid gap-3">
                                 <FormField
                                     control={form.control}
-                                    name="routine_name"
+                                    name="plan_name"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Routine Name</FormLabel>
+                                            <FormLabel>Plan Name</FormLabel>
                                             <FormControl>
                                                 <Input {...field} />
                                             </FormControl>
@@ -174,7 +174,7 @@ export default function RoutineBuilderForm() {
                                     type="submit"
                                     className="w-full"
                                 >
-                                    Create Routine
+                                    Create Plan
                                 </Button>
                             </div>
                         </div>
@@ -186,7 +186,7 @@ export default function RoutineBuilderForm() {
 }
 
 function NestedSets({ exercise_index }: { exercise_index: number }) {
-    const form = useFormContext<z.infer<typeof routineBuilder>>();
+    const form = useFormContext<z.infer<typeof planBuilder>>();
     const sets_field_array = useFieldArray({
         control: form.control,
         name: `exercises.${exercise_index}.sets` as const,

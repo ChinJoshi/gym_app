@@ -7,14 +7,14 @@ import {
     timestamp,
     unique,
     boolean,
+    interval,
 } from "drizzle-orm/pg-core";
 import { users } from "@/db/auth.schema";
 
-// TODO: change the name of "workouts" to "sessions"
 // TODO: add profiles table
 
-// --- public.routines ---
-export const routines = pgTable("routines", {
+// --- public.plans ---
+export const plans = pgTable("plans", {
     id: uuid("id").defaultRandom().primaryKey(),
     user_id: uuid("user_id")
         .notNull()
@@ -39,15 +39,15 @@ export const planned_exercises = pgTable(
     "planned_exercises",
     {
         id: uuid("id").defaultRandom().primaryKey(),
-        routine_id: uuid("routine_id")
+        plan_id: uuid("plan_id")
             .notNull()
-            .references(() => routines.id),
+            .references(() => plans.id),
         exercise_id: uuid("exercise_id")
             .notNull()
             .references(() => exercises.id),
         sort_order: integer("sort_order").notNull(),
     },
-    (t) => [unique().on(t.routine_id, t.sort_order)]
+    (t) => [unique().on(t.plan_id, t.sort_order)]
 );
 
 // --- public.planned_sets ---
@@ -66,16 +66,18 @@ export const planned_sets = pgTable(
     (t) => [unique().on(t.planned_exercise_id, t.sort_order)]
 );
 
-// --- public.completed_workouts ---
-export const completed_workouts = pgTable("completed_workouts", {
+// --- public.sessions ---
+export const sessions = pgTable("sessions", {
     id: uuid("id").defaultRandom().primaryKey(),
     user_id: uuid("user_id")
         .notNull()
         .references(() => users.id),
-    routine_id: uuid("routine_id")
+    plan_id: uuid("plan_id")
         .notNull()
-        .references(() => routines.id),
-    performed_at: timestamp("performed_at").defaultNow().notNull(),
+        .references(() => plans.id),
+    started_at: timestamp("started_at").defaultNow().notNull(),
+    completed_at: timestamp("completed_at"),
+    duration: interval("duration")
 });
 
 // --- public.completed_exercises ---
@@ -83,15 +85,15 @@ export const completed_exercises = pgTable(
     "completed_exercises",
     {
         id: uuid("id").defaultRandom().primaryKey(),
-        completed_workout_id: uuid("completed_workout_id")
+        session_id: uuid("session_id")
             .notNull()
-            .references(() => completed_workouts.id),
+            .references(() => sessions.id),
         exercise_id: uuid("exercise_id")
             .notNull()
             .references(() => exercises.id),
         sort_order: integer("sort_order").notNull(),
     },
-    (t) => [unique().on(t.completed_workout_id, t.sort_order)]
+    (t) => [unique().on(t.session_id, t.sort_order)]
 );
 
 // --- public.completed_sets ---
