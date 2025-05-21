@@ -129,10 +129,16 @@ export async function startSession(planId: string, userId: string) {
     return sessionId;
 }
 
-export async function endSession(sessionId: string, userId: string){
+export async function endSession( userId: string){
     await db.update(sessions)
         .set({
             completed_at: sql`NOW()`,
             duration: sql`NOW() - ${sessions.started_at}`
-        }).where(and(eq(sessions.id,sessionId),eq(sessions.user_id,userId)))
+        }).where(eq(sessions.user_id,userId))
+}
+
+//TODO: make this query return the entire plan, including exercises and sets
+export async function getPlanFromSessionId(sessionId: string){
+    const results = await db.select().from(sessions).where(eq(sessions.id,sessionId)).leftJoin(plans,eq(sessions.plan_id,plans.id)).leftJoin(planned_exercises,eq(planned_exercises.plan_id,plans.id)).leftJoin(exercises,eq(planned_exercises.exercise_id,exercises.id)).leftJoin(planned_sets,eq(planned_sets.planned_exercise_id,planned_exercises.id)).orderBy(asc(planned_exercises.sort_order), asc(planned_sets.sort_order))
+    return results
 }

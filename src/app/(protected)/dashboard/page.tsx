@@ -12,7 +12,6 @@ import { createClient } from "@/lib/supabase/server";
 import { StartSessionButton } from "@/components/start-session-button";
 
 //TODO: put plan cards in a suspense
-//TODO: convert all actions to trpc
 export default async function Page() {
     const supabase = await createClient();
     const session = await supabase.auth.getSession();
@@ -22,7 +21,7 @@ export default async function Page() {
     // your sessions
     // yout trends
     return (
-        <div className="flex flex-col sm:flex-row justify-center w-full gap-6 m-6">
+        <div className="flex flex-col lg:flex-row justify-center w-full gap-6 m-6">
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle className="flex flex-row justify-between items-center">
@@ -54,11 +53,7 @@ export default async function Page() {
                                         </div>
                                     ))}
                                 </CardContent>
-                                {/* we should make a toast show up if the */}
                                 <CardFooter>
-                                    {/* <Link href={`/sessions/launch/${plan.id}`}>
-                                        <Button>Start</Button>
-                                    </Link> */}
                                     <StartSessionButton
                                         planId={plan.id}
                                     ></StartSessionButton>
@@ -71,11 +66,13 @@ export default async function Page() {
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle>Sessions</CardTitle>
+                    Execute your plans
                 </CardHeader>
             </Card>
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle>Trends</CardTitle>
+                    Put in some sessions to see your trends
                 </CardHeader>
             </Card>
         </div>
