@@ -5,12 +5,14 @@ import {
     planned_exercises,
     exercises,
     sessions,
+    completed_exercises,
+    completed_sets,
 } from "@/db/schema";
 import { users } from "@/db/auth.schema";
-import { planBuilder } from "@/zod-types";
+import { planBuilder , sessionExecution} from "@/zod-types";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import { eq, desc, asc, isNull, and, sql } from "drizzle-orm";
+import { eq, desc, asc, isNull, and, sql, or } from "drizzle-orm";
 
 export async function createPlan(
     plan: z.infer<typeof planBuilder>,
@@ -19,7 +21,6 @@ export async function createPlan(
     console.log("creating plan");
     type planInsert = typeof plans.$inferInsert;
     type plannedExercisesInsert = typeof planned_exercises.$inferInsert;
-    type exerciseInsert = typeof exercises.$inferInsert;
     type plannedSetsInsert = typeof planned_sets.$inferInsert;
 
     console.log("starting createPlan db transaction");
@@ -34,19 +35,11 @@ export async function createPlan(
             await tx.insert(plans).values(planData);
 
             plan.exercises.forEach(async (exercise, exercise_index) => {
-                const exerciseId = uuidv4();
-                const exerciseData = {
-                    id: exerciseId,
-                    name: exercise.exercise,
-                    isCustom: true,
-                    user_id: user_id,
-                } satisfies exerciseInsert;
-                await tx.insert(exercises).values(exerciseData);
                 const plannedExerciseId = uuidv4();
                 const plannedExerciseData = {
                     id: plannedExerciseId,
                     plan_id: planId,
-                    exercise_id: exerciseId,
+                    exercise_id: exercise.exerciseId,
                     sort_order: exercise_index,
                 } satisfies plannedExercisesInsert;
                 await tx.insert(planned_exercises).values(plannedExerciseData);
@@ -137,8 +130,41 @@ export async function endSession( userId: string){
         }).where(eq(sessions.user_id,userId))
 }
 
-//TODO: make this query return the entire plan, including exercises and sets
 export async function getPlanFromSessionId(sessionId: string){
     const results = await db.select().from(sessions).where(eq(sessions.id,sessionId)).leftJoin(plans,eq(sessions.plan_id,plans.id)).leftJoin(planned_exercises,eq(planned_exercises.plan_id,plans.id)).leftJoin(exercises,eq(planned_exercises.exercise_id,exercises.id)).leftJoin(planned_sets,eq(planned_sets.planned_exercise_id,planned_exercises.id)).orderBy(asc(planned_exercises.sort_order), asc(planned_sets.sort_order))
+    return results
+}
+
+//TODO: finish saving of session values
+export async function saveSession(sessionData: z.infer<typeof sessionExecution>,sessionId:string, userId: string ){
+    const results = await db.transaction(async (tx)=>{
+        try {
+            type completedExercisesInsert = typeof completed_exercises.$inferInsert
+            type completedSetsInsert = typeof completed_sets.$inferInsert
+            
+            sessionData.exercises.forEach(async (exercise, exercise_index) => {
+                const exerciseId = exercise.exercise
+                // await db.insert(completed_exercises).values({session_id:sessionId} satisfies completedExercisesInsert)
+
+            })
+
+            await db.update(sessions)
+        .set({
+            completed_at: sql`NOW()`,
+            duration: sql`NOW() - ${sessions.started_at}`
+        }).where(eq(sessions.user_id,userId))
+
+        }
+        catch(error){
+            tx.rollback()
+            console.log(error)
+            return {"error":error}
+        }
+
+    })
+}
+
+export async function getExercises(userId: string){
+    const results = await db.select().from(exercises).where(or(eq(exercises.user_id,userId),eq(exercises.is_custom,false)))
     return results
 }

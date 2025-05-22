@@ -29,8 +29,28 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import buildPlan from "@/actions/build-plan";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "./ui/command";
 
-export default function PlanBuilderForm() {
+export default function PlanBuilderForm(props: {
+    exercises: {
+        id: string;
+        name: string;
+        muscle_group: string | null;
+        equipment: string | null;
+        is_custom: boolean | null;
+        user_id: string | null;
+    }[];
+}) {
     const form = useForm<z.infer<typeof planBuilder>>({
         resolver: zodResolver(planBuilder),
         defaultValues: {
@@ -101,11 +121,84 @@ export default function PlanBuilderForm() {
                                                                 </FormLabel>
                                                             </div>
                                                             <div className="flex flex-row gap-3 my-2">
-                                                                <FormControl>
+                                                                <Popover>
+                                                                    <PopoverTrigger
+                                                                        asChild
+                                                                    >
+                                                                        <FormControl>
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                role="combobox"
+                                                                                className={cn(
+                                                                                    "w-[300px] justify-between",
+                                                                                    !field.value &&
+                                                                                        "text-muted-foreground"
+                                                                                )}
+                                                                            >
+                                                                                {field.value
+                                                                                    ? field.value
+                                                                                    : "Select exercise"}
+                                                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                                            </Button>
+                                                                        </FormControl>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-[300px] p-0">
+                                                                        <Command>
+                                                                            <CommandInput placeholder="Search exercises..." />
+                                                                            <CommandList>
+                                                                                <CommandEmpty>
+                                                                                    No
+                                                                                    exercise
+                                                                                    found.
+                                                                                </CommandEmpty>
+                                                                                <CommandGroup>
+                                                                                    {props.exercises.map(
+                                                                                        (
+                                                                                            exercise
+                                                                                        ) => (
+                                                                                            <CommandItem
+                                                                                                value={
+                                                                                                    exercise.name
+                                                                                                }
+                                                                                                key={
+                                                                                                    exercise.id
+                                                                                                }
+                                                                                                onSelect={() => {
+                                                                                                    form.setValue(
+                                                                                                        `exercises.${exercise_index}.exercise`,
+                                                                                                        exercise.name
+                                                                                                    );
+                                                                                                    form.setValue(
+                                                                                                        `exercises.${exercise_index}.exerciseId`,
+                                                                                                        exercise.id
+                                                                                                    );
+                                                                                                }}
+                                                                                            >
+                                                                                                {
+                                                                                                    exercise.name
+                                                                                                }
+                                                                                                <Check
+                                                                                                    className={cn(
+                                                                                                        "ml-auto",
+                                                                                                        exercise.name ===
+                                                                                                            field.value
+                                                                                                            ? "opacity-100"
+                                                                                                            : "opacity-0"
+                                                                                                    )}
+                                                                                                />
+                                                                                            </CommandItem>
+                                                                                        )
+                                                                                    )}
+                                                                                </CommandGroup>
+                                                                            </CommandList>
+                                                                        </Command>
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                                {/* <FormControl>
                                                                     <Input
                                                                         {...field}
                                                                     />
-                                                                </FormControl>
+                                                                </FormControl> */}
                                                                 <Button
                                                                     type="button"
                                                                     onClick={() => {
@@ -114,6 +207,8 @@ export default function PlanBuilderForm() {
                                                                                 1,
                                                                             {
                                                                                 exercise:
+                                                                                    "",
+                                                                                exerciseId:
                                                                                     "",
                                                                                 sets: [
                                                                                     {

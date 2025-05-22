@@ -29,7 +29,7 @@ export const exercises = pgTable("exercises", {
     name: varchar("name").notNull(),
     muscle_group: varchar("muscle_group"),
     equipment: varchar("equipment"),
-    isCustom: boolean("isCustom").default(false),
+    is_custom: boolean("is_custom").default(false),
     user_id: uuid("user_id").references(() => users.id),
     // add muscle group, equipment, etc. as needed
 });

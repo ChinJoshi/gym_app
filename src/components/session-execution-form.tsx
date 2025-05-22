@@ -8,7 +8,7 @@ import {
     useFormContext,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { planBuilder } from "@/zod-types";
+import { sessionExecution } from "@/zod-types";
 import { z } from "zod";
 import {
     Form,
@@ -28,13 +28,34 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "./ui/command";
+
 import endSession from "@/actions/end-session";
 
 export default function SessionExecutionForm(props: {
-    plan: z.infer<typeof planBuilder>;
+    plan: z.infer<typeof sessionExecution>;
+    sessionId: string;
+    exercises: {
+        id: string;
+        name: string;
+        muscle_group: string | null;
+        equipment: string | null;
+        is_custom: boolean | null;
+        user_id: string | null;
+    }[];
 }) {
-    const form = useForm<z.infer<typeof planBuilder>>({
-        resolver: zodResolver(planBuilder),
+    const form = useForm<z.infer<typeof sessionExecution>>({
+        resolver: zodResolver(sessionExecution),
         defaultValues: props.plan,
     });
 
@@ -43,10 +64,10 @@ export default function SessionExecutionForm(props: {
         name: "exercises",
     });
 
-    const onSubmitSuccess: SubmitHandler<z.infer<typeof planBuilder>> = async (
-        data
-    ) => {
-        await endSession(data);
+    const onSubmitSuccess: SubmitHandler<
+        z.infer<typeof sessionExecution>
+    > = async (data) => {
+        await endSession(data, props.sessionId);
     };
 
     return (
@@ -100,9 +121,82 @@ export default function SessionExecutionForm(props: {
                                                             </div>
                                                             <div className="flex flex-row gap-3 my-2">
                                                                 <FormControl>
-                                                                    <Input
+                                                                    <Popover>
+                                                                        <PopoverTrigger
+                                                                            asChild
+                                                                        >
+                                                                            <FormControl>
+                                                                                <Button
+                                                                                    variant="outline"
+                                                                                    role="combobox"
+                                                                                    className={cn(
+                                                                                        "w-[300px] justify-between",
+                                                                                        !field.value &&
+                                                                                            "text-muted-foreground"
+                                                                                    )}
+                                                                                >
+                                                                                    {field.value
+                                                                                        ? field.value
+                                                                                        : "Select exercise"}
+                                                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                                                </Button>
+                                                                            </FormControl>
+                                                                        </PopoverTrigger>
+                                                                        <PopoverContent className="w-[300px] p-0">
+                                                                            <Command>
+                                                                                <CommandInput placeholder="Search exercises..." />
+                                                                                <CommandList>
+                                                                                    <CommandEmpty>
+                                                                                        No
+                                                                                        exercise
+                                                                                        found.
+                                                                                    </CommandEmpty>
+                                                                                    <CommandGroup>
+                                                                                        {props.exercises.map(
+                                                                                            (
+                                                                                                exercise
+                                                                                            ) => (
+                                                                                                <CommandItem
+                                                                                                    value={
+                                                                                                        exercise.name
+                                                                                                    }
+                                                                                                    key={
+                                                                                                        exercise.id
+                                                                                                    }
+                                                                                                    onSelect={() => {
+                                                                                                        form.setValue(
+                                                                                                            `exercises.${exercise_index}.exercise`,
+                                                                                                            exercise.name
+                                                                                                        );
+                                                                                                        form.setValue(
+                                                                                                            `exercises.${exercise_index}.exerciseId`,
+                                                                                                            exercise.id
+                                                                                                        );
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {
+                                                                                                        exercise.name
+                                                                                                    }
+                                                                                                    <Check
+                                                                                                        className={cn(
+                                                                                                            "ml-auto",
+                                                                                                            exercise.name ===
+                                                                                                                field.value
+                                                                                                                ? "opacity-100"
+                                                                                                                : "opacity-0"
+                                                                                                        )}
+                                                                                                    />
+                                                                                                </CommandItem>
+                                                                                            )
+                                                                                        )}
+                                                                                    </CommandGroup>
+                                                                                </CommandList>
+                                                                            </Command>
+                                                                        </PopoverContent>
+                                                                    </Popover>
+                                                                    {/* <Input
                                                                         {...field}
-                                                                    />
+                                                                    /> */}
                                                                 </FormControl>
                                                                 <Button
                                                                     type="button"
@@ -112,6 +206,8 @@ export default function SessionExecutionForm(props: {
                                                                                 1,
                                                                             {
                                                                                 exercise:
+                                                                                    "",
+                                                                                exerciseId:
                                                                                     "",
                                                                                 sets: [
                                                                                     {
@@ -184,7 +280,7 @@ export default function SessionExecutionForm(props: {
 }
 
 function NestedSets({ exercise_index }: { exercise_index: number }) {
-    const form = useFormContext<z.infer<typeof planBuilder>>();
+    const form = useFormContext<z.infer<typeof sessionExecution>>();
     const sets_field_array = useFieldArray({
         control: form.control,
         name: `exercises.${exercise_index}.sets` as const,
@@ -279,6 +375,9 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                             }}
                         >
                             -
+                        </Button>
+                        <Button type="button" variant="outline">
+                            <Check />
                         </Button>
                     </div>
                 </div>

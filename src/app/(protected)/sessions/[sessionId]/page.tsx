@@ -1,26 +1,33 @@
-import { getPlanFromSessionId } from "@/db/queries";
+import { getPlanFromSessionId, getExercises } from "@/db/queries";
 import SessionExecutionForm from "@/components/session-execution-form";
-import { planBuilder } from "@/zod-types";
+import { sessionExecution } from "@/zod-types";
 import { z } from "zod";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function Page({
     params,
 }: {
     params: Promise<{ sessionId: string }>;
 }) {
-    // TODO: write query to get plan from sessionID
     const { sessionId } = await params;
+
+    const supabase = await createClient();
+    const session = await supabase.auth.getSession();
+    const userId = session.data.session!.user.id;
+
     const planQueryResults = await getPlanFromSessionId(sessionId);
-    console.log(planQueryResults);
-    const exercises = [];
+    const exerciseChoices = await getExercises(userId);
+
+    const planExercises = [];
     let currentExerciseNumber = null;
     for (let i = 0; i < planQueryResults.length; i++) {
         if (
             planQueryResults[i].planned_exercises?.sort_order !=
             currentExerciseNumber
         ) {
-            exercises.push({
+            planExercises.push({
                 exercise: planQueryResults[i].exercises!.name,
+                exerciseId: planQueryResults[i].exercises!.id,
                 sets: [
                     {
                         reps: String(planQueryResults[i].planned_sets!.reps),
@@ -36,7 +43,7 @@ export default async function Page({
             currentExerciseNumber =
                 planQueryResults[i].planned_exercises?.sort_order;
         } else {
-            exercises[exercises.length - 1].sets.push({
+            planExercises[planExercises.length - 1].sets.push({
                 reps: String(planQueryResults[i].planned_sets!.reps),
                 weight: planQueryResults[i].planned_sets?.weight
                     ? String(planQueryResults[i].planned_sets?.weight)
@@ -49,13 +56,17 @@ export default async function Page({
     }
     const plan = {
         plan_name: planQueryResults[0].plans!.name,
-        exercises: exercises,
-    } satisfies z.infer<typeof planBuilder>;
+        exercises: planExercises,
+    } satisfies z.infer<typeof sessionExecution>;
 
     return (
         <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-4xl self-baseline">
-                <SessionExecutionForm plan={plan} />{" "}
+                <SessionExecutionForm
+                    plan={plan}
+                    sessionId={sessionId}
+                    exercises={exerciseChoices}
+                />{" "}
             </div>
         </div>
     );

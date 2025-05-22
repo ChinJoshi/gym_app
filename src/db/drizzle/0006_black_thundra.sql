@@ -1,0 +1,1 @@
+ALTER TABLE "exercises" RENAME COLUMN "isCustom" TO "is_custom";

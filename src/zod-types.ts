@@ -18,6 +18,7 @@ export const planBuilder = z.object({
             exercise: z.string().min(1, {
                 message: "Exercise must include at least 1 character",
             }),
+            exerciseId: z.string(),
             sets: z.array(
                 z.object({
                     reps: numericString("Reps must be a number").min(1, {
@@ -32,3 +33,28 @@ export const planBuilder = z.object({
         })
     ),
 });
+
+export const sessionExecution = z.object({
+    plan_name: z.string().min(1, {
+        message: "Plan name must include at least 1 character",
+    }),
+    exercises: z.array(
+        z.object({
+            exercise: z.string().min(1, {
+                message: "Exercise must include at least 1 character",
+            }),
+            exerciseId: z.string(),
+            sets: z.array(
+                z.object({
+                    reps: numericString("Reps must be a number").min(1, {
+                        message: "Sets must include at least 1 rep",
+                    }),
+                    weight: numericString("Weight must be a number").optional(),
+                    duration: numericString(
+                        "Duration must be a number"
+                    ).optional(),
+                })
+            ),
+        })
+    ),
+})
