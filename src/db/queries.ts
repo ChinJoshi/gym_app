@@ -135,24 +135,22 @@ export async function getPlanFromSessionId(sessionId: string){
     return results
 }
 
-//TODO: finish saving of session values
-export async function saveSession(sessionData: z.infer<typeof sessionExecution>,sessionId:string, userId: string ){
-    const results = await db.transaction(async (tx)=>{
+//TODO: use the completed flag from the sessionData to select whether to log or not log a set
+export async function saveSession(sessionData: z.infer<typeof sessionExecution>,sessionId:string){
+    await db.transaction(async (tx)=>{
         try {
             type completedExercisesInsert = typeof completed_exercises.$inferInsert
             type completedSetsInsert = typeof completed_sets.$inferInsert
             
             sessionData.exercises.forEach(async (exercise, exercise_index) => {
-                const exerciseId = exercise.exercise
-                // await db.insert(completed_exercises).values({session_id:sessionId} satisfies completedExercisesInsert)
-
+                const completedExerciseId = uuidv4()
+                await tx.insert(completed_exercises).values({id: completedExerciseId,exercise_id:exercise.exerciseId,sort_order:exercise_index,session_id:sessionId} satisfies completedExercisesInsert)
+                exercise.sets.forEach(async (set,set_index) =>{
+                    await tx.insert(completed_sets).values({sort_order: set_index, reps: Number(set.reps), completed_exercise_id:completedExerciseId, duration: set.duration ? Number(set.duration) : null, weight: set.weight ? Number(set.weight) : null} satisfies completedSetsInsert)
+                })
             })
 
-            await db.update(sessions)
-        .set({
-            completed_at: sql`NOW()`,
-            duration: sql`NOW() - ${sessions.started_at}`
-        }).where(eq(sessions.user_id,userId))
+            await db.update(sessions).set({completed_at: sql`NOW()`, duration: sql`NOW() - ${sessions.started_at}`}).where(eq(sessions.id,sessionId))
 
         }
         catch(error){
@@ -166,5 +164,10 @@ export async function saveSession(sessionData: z.infer<typeof sessionExecution>,
 
 export async function getExercises(userId: string){
     const results = await db.select().from(exercises).where(or(eq(exercises.user_id,userId),eq(exercises.is_custom,false)))
+    return results
+}
+
+export async function getSessions(userId: string){
+    const results = await db.select().from(sessions).where(eq(sessions.user_id,userId)).leftJoin(plans,eq(sessions.plan_id,plans.id))
     return results
 }

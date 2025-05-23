@@ -8,6 +8,7 @@ export const loginUser = z.object({
 });
 
 const numericString = (message: string) => z.string().regex(/^\d*$/, message);
+const booleanString = (message: string) => z.string().regex(/^(true|false)$/, message)
 
 export const planBuilder = z.object({
     plan_name: z.string().min(1, {
@@ -53,6 +54,7 @@ export const sessionExecution = z.object({
                     duration: numericString(
                         "Duration must be a number"
                     ).optional(),
+                    completed: booleanString("completed must be  true or false")
                 })
             ),
         })

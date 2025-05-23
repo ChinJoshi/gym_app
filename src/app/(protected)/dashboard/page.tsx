@@ -7,9 +7,10 @@ import {
     CardFooter,
 } from "@/components/ui/card";
 import Link from "next/link";
-import { getPlans, getPlannedExercises } from "@/db/queries";
+import { getPlans, getPlannedExercises, getSessions } from "@/db/queries";
 import { createClient } from "@/lib/supabase/server";
 import { StartSessionButton } from "@/components/start-session-button";
+import { Plus } from "lucide-react";
 
 //TODO: put plan cards in a suspense
 export default async function Page() {
@@ -17,6 +18,7 @@ export default async function Page() {
     const session = await supabase.auth.getSession();
     const userId = session.data.session!.user.id;
     const plans = await getPlans(userId);
+    const executedSessions = await getSessions(userId);
     // your plans
     // your sessions
     // yout trends
@@ -27,7 +29,9 @@ export default async function Page() {
                     <CardTitle className="flex flex-row justify-between items-center">
                         <div>Plans</div>
                         <Link href="/plan/build">
-                            <Button className="font-extrabold">+</Button>
+                            <Button className="font-extrabold">
+                                <Plus />
+                            </Button>
                         </Link>
                     </CardTitle>
                 </CardHeader>
@@ -66,7 +70,26 @@ export default async function Page() {
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle>Sessions</CardTitle>
-                    Execute your plans
+                    <CardContent>
+                        {executedSessions.map(async (executedSession) => {
+                            return (
+                                <Card
+                                    key={executedSession.sessions.id}
+                                    className="my-3"
+                                >
+                                    <CardHeader>
+                                        <CardTitle>
+                                            {`${
+                                                executedSession.plans!.name
+                                            } Session`}
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent></CardContent>
+                                    <CardFooter></CardFooter>
+                                </Card>
+                            );
+                        })}
+                    </CardContent>
                 </CardHeader>
             </Card>
             <Card className="w-full">

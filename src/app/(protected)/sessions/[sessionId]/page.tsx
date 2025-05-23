@@ -4,6 +4,8 @@ import { sessionExecution } from "@/zod-types";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
+//TODO: ensure that the session actually belongs to the user, someone could theoretically "hijack" someones session if they guessed or got their session id
+
 export default async function Page({
     params,
 }: {
@@ -37,6 +39,7 @@ export default async function Page({
                         duration: planQueryResults[i].planned_sets?.duration
                             ? String(planQueryResults[i].planned_sets?.duration)
                             : undefined,
+                        completed: "false",
                     },
                 ],
             });
@@ -51,6 +54,7 @@ export default async function Page({
                 duration: planQueryResults[i].planned_sets?.duration
                     ? String(planQueryResults[i].planned_sets?.duration)
                     : undefined,
+                completed: "false",
             });
         }
     }

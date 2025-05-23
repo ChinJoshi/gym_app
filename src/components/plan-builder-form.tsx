@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import buildPlan from "@/actions/build-plan";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Minus, Plus } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
     Command,
@@ -222,7 +222,7 @@ export default function PlanBuilderForm(props: {
                                                                         );
                                                                     }}
                                                                 >
-                                                                    +
+                                                                    <Plus />
                                                                 </Button>
                                                                 <Button
                                                                     type="button"
@@ -240,7 +240,7 @@ export default function PlanBuilderForm(props: {
                                                                         }
                                                                     }}
                                                                 >
-                                                                    -
+                                                                    <Minus />
                                                                 </Button>
                                                             </div>
                                                         </FormItem>
@@ -353,7 +353,7 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                             );
                         }}
                     />
-                    <div className="flex flex-row gap-3 my-2">
+                    <div className="flex flex-row gap-3">
                         <Button
                             type="button"
                             onClick={() => {
@@ -364,7 +364,7 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                                 });
                             }}
                         >
-                            +
+                            <Plus />
                         </Button>
                         <Button
                             type="button"
@@ -375,7 +375,7 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                                 }
                             }}
                         >
-                            -
+                            <Minus />
                         </Button>
                     </div>
                 </div>

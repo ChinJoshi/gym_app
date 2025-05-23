@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Minus } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
     Command,
@@ -215,13 +215,15 @@ export default function SessionExecutionForm(props: {
                                                                                         weight: "",
                                                                                         duration:
                                                                                             "",
+                                                                                        completed:
+                                                                                            "false",
                                                                                     },
                                                                                 ],
                                                                             }
                                                                         );
                                                                     }}
                                                                 >
-                                                                    +
+                                                                    <Plus />
                                                                 </Button>
                                                                 <Button
                                                                     type="button"
@@ -239,7 +241,7 @@ export default function SessionExecutionForm(props: {
                                                                         }
                                                                     }}
                                                                 >
-                                                                    -
+                                                                    <Minus />
                                                                 </Button>
                                                             </div>
                                                         </FormItem>
@@ -352,7 +354,7 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                             );
                         }}
                     />
-                    <div className="flex flex-row gap-3 my-2">
+                    <div className="flex flex-row gap-3">
                         <Button
                             type="button"
                             onClick={() => {
@@ -360,10 +362,11 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                                     reps: "",
                                     weight: "",
                                     duration: "",
+                                    completed: "false",
                                 });
                             }}
                         >
-                            +
+                            <Plus />
                         </Button>
                         <Button
                             type="button"
@@ -374,11 +377,56 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                                 }
                             }}
                         >
-                            -
+                            <Minus />
                         </Button>
-                        <Button type="button" variant="outline">
-                            <Check />
-                        </Button>
+                        <FormField
+                            control={form.control}
+                            name={`exercises.${exercise_index}.sets.${set_index}.completed`}
+                            render={({ field }) => {
+                                return (
+                                    <div>
+                                        <FormItem>
+                                            <FormControl>
+                                                <Button
+                                                    type="button"
+                                                    variant={
+                                                        field.value === "true"
+                                                            ? "default"
+                                                            : "outline"
+                                                    }
+                                                    className={
+                                                        field.value === "true"
+                                                            ? "bg-green-600 hover:bg-green-600"
+                                                            : ""
+                                                    }
+                                                    onClick={() => {
+                                                        form.setValue(
+                                                            `exercises.${exercise_index}.sets.${set_index}.completed`,
+                                                            field.value ==
+                                                                "true"
+                                                                ? "false"
+                                                                : "true"
+                                                        );
+                                                        console.log(
+                                                            form.getValues()
+                                                        );
+                                                    }}
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            field.value ===
+                                                                "true"
+                                                                ? "opacity-100"
+                                                                : "opacity-20"
+                                                        )}
+                                                    />
+                                                </Button>
+                                            </FormControl>
+                                        </FormItem>
+                                    </div>
+                                );
+                            }}
+                        />
                     </div>
                 </div>
             ))}
