@@ -170,3 +170,8 @@ export async function getSessions(userId: string){
     const results = await db.select().from(sessions).where(eq(sessions.user_id,userId)).leftJoin(plans,eq(sessions.plan_id,plans.id))
     return results
 }
+
+export async function getSessionVolumes(planId: string){
+    const results = await db.select({volume: sql<number>`sum(${session_sets.weight} * ${session_sets.reps})` }).from(sessions).where(eq(sessions.plan_id,planId)).leftJoin(session_exercises,eq(sessions.id,session_exercises.session_id)).leftJoin(session_sets,eq(session_exercises.id,session_sets.session_exercise_id)).groupBy(sessions.id).orderBy(sessions.completed_at)
+    return results
+}

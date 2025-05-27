@@ -11,6 +11,8 @@ import { getPlans, getPlannedExercises, getSessions } from "@/db/queries";
 import { createClient } from "@/lib/supabase/server";
 import { StartSessionButton } from "@/components/start-session-button";
 import { Plus } from "lucide-react";
+import MiniChart from "@/components/mini-volume-chart";
+import { getSessionVolumes } from "@/db/queries";
 
 //TODO: put plan cards in a suspense
 export default async function Page() {
@@ -19,6 +21,7 @@ export default async function Page() {
     const userId = session.data.session!.user.id;
     const plans = await getPlans(userId);
     const executedSessions = await getSessions(userId);
+
     // your plans
     // your sessions
     // yout trends
@@ -95,8 +98,31 @@ export default async function Page() {
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle>Trends</CardTitle>
-                    Put in some sessions to see your trends
+                    Trends organized by plan type
                 </CardHeader>
+                <CardContent>
+                    {plans.map(async (plan) => {
+                        return (
+                            <Card key={plan.id} className="my-3">
+                                <CardHeader>
+                                    <CardTitle>{plan.name} Volume</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <MiniChart
+                                        volumes={await getSessionVolumes(
+                                            plan.id
+                                        )}
+                                    />
+                                </CardContent>
+                                {/* <CardFooter>
+                                    <Link href={`/trends/${plan.id}`}>
+                                        <Button>View Trends</Button>
+                                    </Link>
+                                </CardFooter> */}
+                            </Card>
+                        );
+                    })}
+                </CardContent>
             </Card>
         </div>
     );
