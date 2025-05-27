@@ -80,9 +80,9 @@ export const sessions = pgTable("sessions", {
     duration: interval("duration")
 });
 
-// --- public.completed_exercises ---
-export const completed_exercises = pgTable(
-    "completed_exercises",
+// --- public.session_exercises ---
+export const session_exercises = pgTable(
+    "session_exercises",
     {
         id: uuid("id").defaultRandom().primaryKey(),
         session_id: uuid("session_id")
@@ -96,18 +96,19 @@ export const completed_exercises = pgTable(
     (t) => [unique().on(t.session_id, t.sort_order)]
 );
 
-// --- public.completed_sets ---
-export const completed_sets = pgTable(
-    "completed_sets",
+// --- public.session_sets ---
+export const session_sets = pgTable(
+    "session_sets",
     {
         id: uuid("id").defaultRandom().primaryKey(),
-        completed_exercise_id: uuid("completed_exercise_id")
+        session_exercise_id: uuid("session_exercise_id")
             .notNull()
-            .references(() => completed_exercises.id),
+            .references(() => session_exercises.id),
         weight: doublePrecision("weight"),
         duration: integer("duration"),
         reps: integer("reps").notNull(),
+        completed: boolean("completed").notNull(),
         sort_order: integer("sort_order").notNull(),
     },
-    (t) => [unique().on(t.completed_exercise_id, t.sort_order)]
+    (t) => [unique().on(t.session_exercise_id, t.sort_order)]
 );

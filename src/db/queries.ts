@@ -5,8 +5,8 @@ import {
     planned_exercises,
     exercises,
     sessions,
-    completed_exercises,
-    completed_sets,
+    session_exercises,
+    session_sets,
 } from "@/db/schema";
 import { users } from "@/db/auth.schema";
 import { planBuilder , sessionExecution} from "@/zod-types";
@@ -135,18 +135,17 @@ export async function getPlanFromSessionId(sessionId: string){
     return results
 }
 
-//TODO: use the completed flag from the sessionData to select whether to log or not log a set
 export async function saveSession(sessionData: z.infer<typeof sessionExecution>,sessionId:string){
     await db.transaction(async (tx)=>{
         try {
-            type completedExercisesInsert = typeof completed_exercises.$inferInsert
-            type completedSetsInsert = typeof completed_sets.$inferInsert
+            type sessionExercisesInsert = typeof session_exercises.$inferInsert
+            type sessionSetsInsert = typeof session_sets.$inferInsert
             
             sessionData.exercises.forEach(async (exercise, exercise_index) => {
-                const completedExerciseId = uuidv4()
-                await tx.insert(completed_exercises).values({id: completedExerciseId,exercise_id:exercise.exerciseId,sort_order:exercise_index,session_id:sessionId} satisfies completedExercisesInsert)
+                const sessionExerciseId = uuidv4()
+                await tx.insert(session_exercises).values({id: sessionExerciseId,exercise_id:exercise.exerciseId,sort_order:exercise_index,session_id:sessionId} satisfies sessionExercisesInsert)
                 exercise.sets.forEach(async (set,set_index) =>{
-                    await tx.insert(completed_sets).values({sort_order: set_index, reps: Number(set.reps), completed_exercise_id:completedExerciseId, duration: set.duration ? Number(set.duration) : null, weight: set.weight ? Number(set.weight) : null} satisfies completedSetsInsert)
+                    await tx.insert(session_sets).values({sort_order: set_index, reps: Number(set.reps), session_exercise_id:sessionExerciseId, duration: set.duration ? Number(set.duration) : null, weight: set.weight ? Number(set.weight) : null, completed: set.completed === "true" ? true: false} satisfies sessionSetsInsert)
                 })
             })
 
