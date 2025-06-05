@@ -22,7 +22,7 @@ export function StartSessionButton({ planId }: { planId: string }) {
 
     return (
         <Button onClick={handleClick} disabled={isPending}>
-            Start
+            Launch
         </Button>
     );
 }

@@ -39,8 +39,9 @@ import {
     CommandItem,
     CommandList,
 } from "./ui/command";
-
+import { useTimer } from "react-use-precision-timer";
 import endSession from "@/actions/end-session";
+import React from "react";
 
 export default function SessionExecutionForm(props: {
     plan: z.infer<typeof sessionExecution>;
@@ -86,21 +87,6 @@ export default function SessionExecutionForm(props: {
                 <CardContent>
                     <form onSubmit={form.handleSubmit(onSubmitSuccess)}>
                         <div className="flex flex-col gap-6">
-                            {/* <div className="grid gap-3">
-                                <FormField
-                                    control={form.control}
-                                    name="plan_name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Plan Name</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                            </div> */}
-
                             <div className="grid gap-3">
                                 {exercises_field_array.fields.map(
                                     (exercise, exercise_index) => (
@@ -287,7 +273,9 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
         control: form.control,
         name: `exercises.${exercise_index}.sets` as const,
     });
-
+    const callback = React.useCallback(() => console.log("Boom"), []);
+    // The callback will be called every 1000 milliseconds.
+    const timer = useTimer({ delay: 1000 }, callback);
     return (
         <div>
             {sets_field_array.fields.map((set, set_index) => (
@@ -407,9 +395,15 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                                                                 ? "false"
                                                                 : "true"
                                                         );
-                                                        console.log(
-                                                            form.getValues()
-                                                        );
+                                                        if (timer.isRunning()) {
+                                                            timer.stop();
+                                                        } else {
+                                                            timer.start();
+                                                        }
+
+                                                        // console.log(
+                                                        //     form.getValues()
+                                                        // );
                                                     }}
                                                 >
                                                     <Check

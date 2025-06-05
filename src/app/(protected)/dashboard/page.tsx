@@ -6,13 +6,22 @@ import {
     CardContent,
     CardFooter,
 } from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import Link from "next/link";
 import { getPlans, getPlannedExercises, getSessions } from "@/db/queries";
 import { createClient } from "@/lib/supabase/server";
 import { StartSessionButton } from "@/components/start-session-button";
 import { Plus } from "lucide-react";
 import MiniChart from "@/components/mini-volume-chart";
-import { getSessionVolumes } from "@/db/queries";
+import { getSessionVolumesByPlan } from "@/db/queries";
 
 //TODO: put plan cards in a suspense
 export default async function Page() {
@@ -46,7 +55,9 @@ export default async function Page() {
                         return (
                             <Card key={plan.id} className="my-3">
                                 <CardHeader>
-                                    <CardTitle>{plan.name}</CardTitle>
+                                    <CardTitle className="wrap-anywhere">
+                                        {plan.name}
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {plannedExercises.map((plannedExercise) => (
@@ -73,27 +84,42 @@ export default async function Page() {
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle>Sessions</CardTitle>
-                    <CardContent>
-                        {executedSessions.map(async (executedSession) => {
-                            return (
-                                <Card
-                                    key={executedSession.sessions.id}
-                                    className="my-3"
-                                >
-                                    <CardHeader>
-                                        <CardTitle>
-                                            {`${
-                                                executedSession.plans!.name
-                                            } Session`}
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent></CardContent>
-                                    <CardFooter></CardFooter>
-                                </Card>
-                            );
-                        })}
-                    </CardContent>
                 </CardHeader>
+
+                <CardContent>
+                    <Table>
+                        <TableCaption>
+                            A list of your recent sessions.
+                        </TableCaption>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Plan</TableHead>
+                                <TableHead>Volume</TableHead>
+                                <TableHead>Date</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {executedSessions.map(async (executedSession) => {
+                                return (
+                                    <TableRow key={executedSession.sessions.id}>
+                                        <TableCell className="max-w-40 overflow-hidden text-ellipsis">
+                                            {executedSession.plans?.name}
+                                        </TableCell>
+                                        <TableCell>
+                                            {executedSession.volume}
+                                        </TableCell>
+                                        <TableCell>
+                                            {executedSession.sessions
+                                                .completed_at
+                                                ? executedSession.sessions.completed_at.toLocaleString()
+                                                : "In Progress"}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </CardContent>
             </Card>
             <Card className="w-full">
                 <CardHeader>
@@ -102,23 +128,20 @@ export default async function Page() {
                 </CardHeader>
                 <CardContent>
                     {plans.map(async (plan) => {
+                        const volumes = await getSessionVolumesByPlan(plan.id);
+                        if (volumes.length == 0) {
+                            return null;
+                        }
                         return (
                             <Card key={plan.id} className="my-3">
                                 <CardHeader>
-                                    <CardTitle>{plan.name} Volume</CardTitle>
+                                    <CardTitle className="wrap-anywhere">
+                                        {plan.name} Volume
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <MiniChart
-                                        volumes={await getSessionVolumes(
-                                            plan.id
-                                        )}
-                                    />
+                                    <MiniChart volumes={volumes} />
                                 </CardContent>
-                                {/* <CardFooter>
-                                    <Link href={`/trends/${plan.id}`}>
-                                        <Button>View Trends</Button>
-                                    </Link>
-                                </CardFooter> */}
                             </Card>
                         );
                     })}
