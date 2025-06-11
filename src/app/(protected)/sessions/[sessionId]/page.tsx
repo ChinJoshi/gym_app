@@ -17,7 +17,17 @@ export default async function Page({
     const session = await supabase.auth.getSession();
     const userId = session.data.session!.user.id;
 
-    const planQueryResults = await getPlanFromSessionId(sessionId);
+    const planQueryResults = await getPlanFromSessionId(sessionId, userId);
+
+    if (!planQueryResults) {
+        // Handle case where session doesn't exist or user doesn't have access
+        // For example, redirect or show a "not found" page
+        return (
+            <div>
+                Session not found or you do not have permission to view it.
+            </div>
+        );
+    }
     const exerciseChoices = await getExercises(userId);
 
     const planExercises = [];
@@ -64,8 +74,8 @@ export default async function Page({
     } satisfies z.infer<typeof sessionExecution>;
 
     return (
-        <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-            <div className="w-full max-w-4xl self-baseline">
+        <div className="flex min-h-svh w-full items-center justify-center">
+            <div className="max-w-4xl self-baseline p-4">
                 <SessionExecutionForm
                     plan={plan}
                     sessionId={sessionId}

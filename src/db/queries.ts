@@ -34,7 +34,7 @@ export async function createPlan(
             } satisfies planInsert;
             await tx.insert(plans).values(planData);
 
-            plan.exercises.forEach(async (exercise, exercise_index) => {
+            for (const [exercise_index, exercise] of plan.exercises.entries()) {
                 const plannedExerciseId = uuidv4();
                 const plannedExerciseData = {
                     id: plannedExerciseId,
@@ -44,7 +44,7 @@ export async function createPlan(
                 } satisfies plannedExercisesInsert;
                 await tx.insert(planned_exercises).values(plannedExerciseData);
 
-                exercise.sets.forEach(async (set, set_index) => {
+                for (const [set_index, set] of exercise.sets.entries()) {
                     const plannedSetData = {
                         id: uuidv4(),
                         planned_exercise_id: plannedExerciseId,
@@ -54,8 +54,8 @@ export async function createPlan(
                         sort_order: set_index,
                     } satisfies plannedSetsInsert;
                     await tx.insert(planned_sets).values(plannedSetData);
-                });
-            });
+                }
+            }
             return { success: true };
         } catch (error) {
             tx.rollback();
@@ -130,8 +130,11 @@ export async function endSession( userId: string){
         }).where(eq(sessions.user_id,userId))
 }
 
-export async function getPlanFromSessionId(sessionId: string){
-    const results = await db.select().from(sessions).where(eq(sessions.id,sessionId)).leftJoin(plans,eq(sessions.plan_id,plans.id)).leftJoin(planned_exercises,eq(planned_exercises.plan_id,plans.id)).leftJoin(exercises,eq(planned_exercises.exercise_id,exercises.id)).leftJoin(planned_sets,eq(planned_sets.planned_exercise_id,planned_exercises.id)).orderBy(asc(planned_exercises.sort_order), asc(planned_sets.sort_order))
+export async function getPlanFromSessionId(sessionId: string, userId: string){
+    const results = await db.select().from(sessions).where(and(eq(sessions.id,sessionId), eq(sessions.user_id, userId))).leftJoin(plans,eq(sessions.plan_id,plans.id)).leftJoin(planned_exercises,eq(planned_exercises.plan_id,plans.id)).leftJoin(exercises,eq(planned_exercises.exercise_id,exercises.id)).leftJoin(planned_sets,eq(planned_sets.planned_exercise_id,planned_exercises.id)).orderBy(asc(planned_exercises.sort_order), asc(planned_sets.sort_order))
+    if (results.length === 0) {
+        return null; // Or throw an error
+    }
     return results
 }
 
@@ -141,13 +144,13 @@ export async function saveSession(sessionData: z.infer<typeof sessionExecution>,
             type sessionExercisesInsert = typeof session_exercises.$inferInsert
             type sessionSetsInsert = typeof session_sets.$inferInsert
             
-            sessionData.exercises.forEach(async (exercise, exercise_index) => {
+            for (const [exercise_index, exercise] of sessionData.exercises.entries()) {
                 const sessionExerciseId = uuidv4()
                 await tx.insert(session_exercises).values({id: sessionExerciseId,exercise_id:exercise.exerciseId,sort_order:exercise_index,session_id:sessionId} satisfies sessionExercisesInsert)
-                exercise.sets.forEach(async (set,set_index) =>{
+                for (const [set_index, set] of exercise.sets.entries()) {
                     await tx.insert(session_sets).values({sort_order: set_index, reps: Number(set.reps), session_exercise_id:sessionExerciseId, duration: set.duration ? Number(set.duration) : null, weight: set.weight ? Number(set.weight) : null, completed: set.completed === "true" ? true: false} satisfies sessionSetsInsert)
-                })
-            })
+                }
+            }
 
             await db.update(sessions).set({completed_at: sql`NOW()`, duration: sql`NOW() - ${sessions.started_at}`}).where(eq(sessions.id,sessionId))
 

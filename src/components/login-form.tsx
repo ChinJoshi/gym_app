@@ -91,13 +91,13 @@ export function LoginForm({
                                                     <FormLabel>
                                                         Password
                                                     </FormLabel>
-
+                                                    {/* 
                                                     <Link
                                                         href="#"
                                                         className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                                                     >
                                                         Forgot your password?
-                                                    </Link>
+                                                    </Link> */}
                                                 </div>
                                                 <FormControl>
                                                     <Input

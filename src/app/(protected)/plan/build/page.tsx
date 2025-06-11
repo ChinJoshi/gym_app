@@ -8,8 +8,8 @@ export default async function Page() {
     const userId = session.data.session!.user.id;
     const exercises = await getExercises(userId);
     return (
-        <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-            <div className="w-full max-w-4xl self-baseline">
+        <div className="flex min-h-svh w-full items-center justify-center">
+            <div className="max-w-4xl self-baseline p-4">
                 <PlanBuilderForm exercises={exercises} />
             </div>
         </div>

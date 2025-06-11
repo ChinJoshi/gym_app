@@ -17,7 +17,7 @@ export default function MiniVolumeChart(props: {
     volumes: Array<{ volume: number }>;
 }) {
     return (
-        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+        <ChartContainer config={chartConfig} className="min-h-[100px] w-full">
             <BarChart accessibilityLayer data={props.volumes}>
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <CartesianGrid vertical={false} />

@@ -14,8 +14,10 @@ export async function login(prevState: string | undefined, formData: FormData) {
 
     const parsedCredentials = loginUser.safeParse(formDataObject);
     if (!parsedCredentials.success) {
-        console.log("parsing error: " + parsedCredentials.error.toString());
-        return { error: "Invalid email or password" };
+        // Flatten the Zod error to get a user-friendly message for the UI
+        const errorMessage = parsedCredentials.error.flatten().fieldErrors;
+        const firstError = Object.values(errorMessage)[0]?.[0] ?? "Invalid credentials";
+        return { error: firstError };
     }
     const { error } = await supabaseClient.auth.signInWithPassword(
         parsedCredentials.data

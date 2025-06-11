@@ -77,9 +77,9 @@ export default function PlanBuilderForm(props: {
 
     return (
         <Form {...form}>
-            <Card>
+            <Card className="min-w-fit">
                 <CardHeader>
-                    <CardTitle className="text-2xl">
+                    <CardTitle className="text-2xl wrap-anywhere">
                         {form.watch("plan_name") || "Plan"}
                     </CardTitle>
                     <CardDescription>Build a plan</CardDescription>
@@ -94,7 +94,7 @@ export default function PlanBuilderForm(props: {
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Plan Name</FormLabel>
-                                            <FormControl>
+                                            <FormControl className="max-w-lg">
                                                 <Input {...field} />
                                             </FormControl>
                                         </FormItem>
@@ -102,158 +102,166 @@ export default function PlanBuilderForm(props: {
                                 />
                             </div>
 
-                            <div className="grid gap-3">
+                            <div className="flex flex-col gap-6">
                                 {exercises_field_array.fields.map(
                                     (exercise, exercise_index) => (
-                                        <FormField
+                                        <div
                                             key={exercise.id}
-                                            control={form.control}
-                                            name={`exercises.${exercise_index}.exercise`}
-                                            render={({ field }) => {
-                                                return (
-                                                    <div>
-                                                        <FormItem>
-                                                            <div className="flex items-center">
-                                                                <FormLabel>
-                                                                    Exercise{" "}
-                                                                    {exercise_index +
-                                                                        1}
-                                                                </FormLabel>
-                                                            </div>
-                                                            <div className="flex flex-row gap-3 my-2">
-                                                                <Popover>
-                                                                    <PopoverTrigger
-                                                                        asChild
-                                                                    >
-                                                                        <FormControl>
-                                                                            <Button
-                                                                                variant="outline"
-                                                                                role="combobox"
-                                                                                className={cn(
-                                                                                    "w-[300px] justify-between",
-                                                                                    !field.value &&
-                                                                                        "text-muted-foreground"
-                                                                                )}
-                                                                            >
-                                                                                {field.value
-                                                                                    ? field.value
-                                                                                    : "Select exercise"}
-                                                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                                            </Button>
-                                                                        </FormControl>
-                                                                    </PopoverTrigger>
-                                                                    <PopoverContent className="w-[300px] p-0">
-                                                                        <Command>
-                                                                            <CommandInput placeholder="Search exercises..." />
-                                                                            <CommandList>
-                                                                                <CommandEmpty>
-                                                                                    No
-                                                                                    exercise
-                                                                                    found.
-                                                                                </CommandEmpty>
-                                                                                <CommandGroup>
-                                                                                    {props.exercises.map(
-                                                                                        (
-                                                                                            exercise
-                                                                                        ) => (
-                                                                                            <CommandItem
-                                                                                                value={
-                                                                                                    exercise.name
-                                                                                                }
-                                                                                                key={
-                                                                                                    exercise.id
-                                                                                                }
-                                                                                                onSelect={() => {
-                                                                                                    form.setValue(
-                                                                                                        `exercises.${exercise_index}.exercise`,
-                                                                                                        exercise.name
-                                                                                                    );
-                                                                                                    form.setValue(
-                                                                                                        `exercises.${exercise_index}.exerciseId`,
-                                                                                                        exercise.id
-                                                                                                    );
-                                                                                                }}
-                                                                                            >
-                                                                                                {
-                                                                                                    exercise.name
-                                                                                                }
-                                                                                                <Check
-                                                                                                    className={cn(
-                                                                                                        "ml-auto",
-                                                                                                        exercise.name ===
-                                                                                                            field.value
-                                                                                                            ? "opacity-100"
-                                                                                                            : "opacity-0"
-                                                                                                    )}
-                                                                                                />
-                                                                                            </CommandItem>
-                                                                                        )
+                                            className="flex flex-col gap-6"
+                                        >
+                                            <FormField
+                                                // key={exercise.id}
+                                                control={form.control}
+                                                name={`exercises.${exercise_index}.exercise`}
+                                                render={({ field }) => {
+                                                    return (
+                                                        <div>
+                                                            <FormItem>
+                                                                <div className="flex items-center">
+                                                                    <FormLabel>
+                                                                        Exercise{" "}
+                                                                        {exercise_index +
+                                                                            1}
+                                                                    </FormLabel>
+                                                                </div>
+                                                                <div className="flex flex-row gap-3 my-2">
+                                                                    <Popover>
+                                                                        <PopoverTrigger
+                                                                            asChild
+                                                                        >
+                                                                            <FormControl>
+                                                                                <Button
+                                                                                    variant="outline"
+                                                                                    role="combobox"
+                                                                                    className={cn(
+                                                                                        "w-40 sm:w-60 justify-between",
+                                                                                        !field.value &&
+                                                                                            "text-muted-foreground"
                                                                                     )}
-                                                                                </CommandGroup>
-                                                                            </CommandList>
-                                                                        </Command>
-                                                                    </PopoverContent>
-                                                                </Popover>
-                                                                {/* <FormControl>
+                                                                                >
+                                                                                    <span className="truncate">
+                                                                                        {field.value
+                                                                                            ? field.value
+                                                                                            : "Select exercise"}
+                                                                                    </span>
+                                                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                                                </Button>
+                                                                            </FormControl>
+                                                                        </PopoverTrigger>
+                                                                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                                                            <Command>
+                                                                                <CommandInput placeholder="Search exercises..." />
+                                                                                <CommandList>
+                                                                                    <CommandEmpty>
+                                                                                        No
+                                                                                        exercise
+                                                                                        found.
+                                                                                    </CommandEmpty>
+                                                                                    <CommandGroup>
+                                                                                        {props.exercises.map(
+                                                                                            (
+                                                                                                exercise
+                                                                                            ) => (
+                                                                                                <CommandItem
+                                                                                                    value={
+                                                                                                        exercise.name
+                                                                                                    }
+                                                                                                    key={
+                                                                                                        exercise.id
+                                                                                                    }
+                                                                                                    onSelect={() => {
+                                                                                                        form.setValue(
+                                                                                                            `exercises.${exercise_index}.exercise`,
+                                                                                                            exercise.name
+                                                                                                        );
+                                                                                                        form.setValue(
+                                                                                                            `exercises.${exercise_index}.exerciseId`,
+                                                                                                            exercise.id
+                                                                                                        );
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {
+                                                                                                        exercise.name
+                                                                                                    }
+                                                                                                    <Check
+                                                                                                        className={cn(
+                                                                                                            "ml-auto",
+                                                                                                            exercise.name ===
+                                                                                                                field.value
+                                                                                                                ? "opacity-100"
+                                                                                                                : "opacity-0"
+                                                                                                        )}
+                                                                                                    />
+                                                                                                </CommandItem>
+                                                                                            )
+                                                                                        )}
+                                                                                    </CommandGroup>
+                                                                                </CommandList>
+                                                                            </Command>
+                                                                        </PopoverContent>
+                                                                    </Popover>
+                                                                    {/* <FormControl>
                                                                     <Input
                                                                         {...field}
                                                                     />
                                                                 </FormControl> */}
-                                                                <Button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        exercises_field_array.insert(
-                                                                            exercise_index +
-                                                                                1,
-                                                                            {
-                                                                                exercise:
-                                                                                    "",
-                                                                                exerciseId:
-                                                                                    "",
-                                                                                sets: [
-                                                                                    {
-                                                                                        reps: "",
-                                                                                        weight: "",
-                                                                                        duration:
-                                                                                            "",
-                                                                                    },
-                                                                                ],
-                                                                            }
-                                                                        );
-                                                                    }}
-                                                                >
-                                                                    <Plus />
-                                                                </Button>
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="destructive"
-                                                                    onClick={() => {
-                                                                        if (
-                                                                            exercises_field_array
-                                                                                .fields
-                                                                                .length >
-                                                                            1
-                                                                        ) {
-                                                                            exercises_field_array.remove(
-                                                                                exercise_index
+                                                                    <Button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            exercises_field_array.insert(
+                                                                                exercise_index +
+                                                                                    1,
+                                                                                {
+                                                                                    exercise:
+                                                                                        "",
+                                                                                    exerciseId:
+                                                                                        "",
+                                                                                    sets: [
+                                                                                        {
+                                                                                            reps: "",
+                                                                                            weight: "",
+                                                                                            duration:
+                                                                                                "",
+                                                                                        },
+                                                                                    ],
+                                                                                }
                                                                             );
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <Minus />
-                                                                </Button>
-                                                            </div>
-                                                        </FormItem>
+                                                                        }}
+                                                                    >
+                                                                        <Plus />
+                                                                    </Button>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="destructive"
+                                                                        onClick={() => {
+                                                                            if (
+                                                                                exercises_field_array
+                                                                                    .fields
+                                                                                    .length >
+                                                                                1
+                                                                            ) {
+                                                                                exercises_field_array.remove(
+                                                                                    exercise_index
+                                                                                );
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <Minus />
+                                                                    </Button>
+                                                                </div>
+                                                            </FormItem>
 
-                                                        <NestedSets
-                                                            exercise_index={
-                                                                exercise_index
-                                                            }
-                                                        />
-                                                    </div>
-                                                );
-                                            }}
-                                        />
+                                                            <NestedSets
+                                                                exercise_index={
+                                                                    exercise_index
+                                                                }
+                                                            />
+                                                        </div>
+                                                    );
+                                                }}
+                                            />
+                                            <hr />
+                                        </div>
                                     )
                                 )}
                                 {form.formState.errors.root && (
@@ -267,7 +275,7 @@ export default function PlanBuilderForm(props: {
                                 <Button
                                     disabled={form.formState.isSubmitting}
                                     type="submit"
-                                    className="w-full"
+                                    className="w-fit"
                                 >
                                     Create Plan
                                 </Button>
@@ -294,7 +302,7 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                     key={set.id}
                     className="flex flex-row gap-3 items-end my-2"
                 >
-                    <Label className="my-5">Set {set_index + 1}</Label>
+                    {/* <Label className="my-5">Set {set_index + 1}</Label> */}
                     <FormField
                         control={form.control}
                         name={
@@ -307,7 +315,7 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                                         <div className="flex items-center">
                                             <FormLabel>Reps </FormLabel>
                                         </div>
-                                        <FormControl>
+                                        <FormControl className="max-w-20">
                                             <Input {...field} placeholder="0" />
                                         </FormControl>
                                     </FormItem>
@@ -326,7 +334,7 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                                         <div className="flex items-center">
                                             <FormLabel>Weight </FormLabel>
                                         </div>
-                                        <FormControl>
+                                        <FormControl className="max-w-20">
                                             <Input {...field} placeholder="0" />
                                         </FormControl>
                                     </FormItem>
@@ -345,7 +353,7 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                                         <div className="flex items-center">
                                             <FormLabel>Duration </FormLabel>
                                         </div>
-                                        <FormControl>
+                                        <FormControl className="max-w-20">
                                             <Input {...field} placeholder="0" />
                                         </FormControl>
                                     </FormItem>

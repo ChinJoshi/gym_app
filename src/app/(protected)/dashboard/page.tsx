@@ -16,12 +16,17 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
-import { getPlans, getPlannedExercises, getSessions } from "@/db/queries";
+import {
+    getPlans,
+    getPlannedExercises,
+    getSessions,
+    getSessionVolumesByPlan,
+    getSessionInProgress,
+} from "@/db/queries";
 import { createClient } from "@/lib/supabase/server";
 import { StartSessionButton } from "@/components/start-session-button";
 import { Plus } from "lucide-react";
 import MiniChart from "@/components/mini-volume-chart";
-import { getSessionVolumesByPlan } from "@/db/queries";
 
 //TODO: put plan cards in a suspense
 export default async function Page() {
@@ -30,70 +35,90 @@ export default async function Page() {
     const userId = session.data.session!.user.id;
     const plans = await getPlans(userId);
     const executedSessions = await getSessions(userId);
+    const sessionInProgress = await getSessionInProgress(userId);
 
     // your plans
     // your sessions
     // yout trends
     return (
-        <div className="flex flex-col lg:flex-row justify-center w-full gap-6 m-6">
-            <Card className="w-full">
-                <CardHeader>
-                    <CardTitle className="flex flex-row justify-between items-center">
-                        <div>Plans</div>
-                        <Link href="/plan/build">
-                            <Button className="font-extrabold">
-                                <Plus />
+        <div className="flex flex-col lg:flex-row justify-center w-full gap-4 sm:gap-6 p-4 sm:p-6">
+            <div className="w-full lg:w-1/3">
+                <div className="flex flex-col">
+                    {sessionInProgress.length > 0 && (
+                        <Link
+                            href={`/sessions/${sessionInProgress[0].id}`}
+                            className="w-full mb-4"
+                        >
+                            <Button className="w-full">
+                                Resume Active Session
                             </Button>
                         </Link>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {plans.map(async (plan) => {
-                        const plannedExercises = await getPlannedExercises(
-                            plan.id
-                        );
-                        return (
-                            <Card key={plan.id} className="my-3">
-                                <CardHeader>
-                                    <CardTitle className="wrap-anywhere">
-                                        {plan.name}
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    {plannedExercises.map((plannedExercise) => (
-                                        <div
-                                            key={
-                                                plannedExercise
-                                                    .planned_exercises.id
-                                            }
-                                        >
-                                            {plannedExercise.exercises?.name}
-                                        </div>
-                                    ))}
-                                </CardContent>
-                                <CardFooter>
-                                    <StartSessionButton
-                                        planId={plan.id}
-                                    ></StartSessionButton>
-                                </CardFooter>
-                            </Card>
-                        );
-                    })}
-                </CardContent>
-            </Card>
-            <Card className="w-full">
+                    )}
+                    <Card className="w-full">
+                        <CardHeader>
+                            <CardTitle className="flex flex-row justify-between items-center">
+                                <div>Plans</div>
+                                <Link href="/plan/build">
+                                    <Button className="font-extrabold">
+                                        <Plus />
+                                    </Button>
+                                </Link>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {plans.map(async (plan) => {
+                                const plannedExercises =
+                                    await getPlannedExercises(plan.id);
+                                return (
+                                    <Card key={plan.id} className="my-3">
+                                        <CardHeader>
+                                            <CardTitle className="wrap-anywhere">
+                                                {plan.name}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            {plannedExercises.map(
+                                                (plannedExercise) => (
+                                                    <div
+                                                        key={
+                                                            plannedExercise
+                                                                .planned_exercises
+                                                                .id
+                                                        }
+                                                    >
+                                                        {
+                                                            plannedExercise
+                                                                .exercises?.name
+                                                        }
+                                                    </div>
+                                                )
+                                            )}
+                                        </CardContent>
+                                        <CardFooter>
+                                            <StartSessionButton
+                                                planId={plan.id}
+                                            ></StartSessionButton>
+                                        </CardFooter>
+                                    </Card>
+                                );
+                            })}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+            <Card className="w-full lg:w-1/3">
                 <CardHeader>
                     <CardTitle>Sessions</CardTitle>
                 </CardHeader>
 
-                <CardContent>
-                    <Table>
+                <CardContent className="w-full">
+                    <Table className="w-full table-fixed">
                         <TableCaption>
                             A list of your recent sessions.
                         </TableCaption>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Plan</TableHead>
+                                <TableHead className="w-[45%]">Plan</TableHead>
                                 <TableHead>Volume</TableHead>
                                 <TableHead>Date</TableHead>
                             </TableRow>
@@ -102,16 +127,16 @@ export default async function Page() {
                             {executedSessions.map(async (executedSession) => {
                                 return (
                                     <TableRow key={executedSession.sessions.id}>
-                                        <TableCell className="max-w-40 overflow-hidden text-ellipsis">
+                                        <TableCell className="truncate">
                                             {executedSession.plans?.name}
                                         </TableCell>
                                         <TableCell>
-                                            {executedSession.volume}
+                                            {executedSession.volume || "-"}
                                         </TableCell>
                                         <TableCell>
                                             {executedSession.sessions
                                                 .completed_at
-                                                ? executedSession.sessions.completed_at.toLocaleString()
+                                                ? executedSession.sessions.completed_at.toLocaleDateString()
                                                 : "In Progress"}
                                         </TableCell>
                                     </TableRow>
@@ -121,7 +146,7 @@ export default async function Page() {
                     </Table>
                 </CardContent>
             </Card>
-            <Card className="w-full">
+            <Card className="w-full lg:w-1/3">
                 <CardHeader>
                     <CardTitle>Trends</CardTitle>
                     Trends organized by plan type

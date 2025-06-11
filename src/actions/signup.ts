@@ -18,8 +18,10 @@ export async function signup(
     // TODO: inform user of why signup was unsuccesful using error codes from supabase/zod
     const parsedCredentials = loginUser.safeParse(formDataObject);
     if (!parsedCredentials.success) {
-        console.log("parsing error: " + parsedCredentials.error.toString());
-        return { error: "Signup unsuccessful" };
+        // Flatten the Zod error to get a user-friendly message for the UI
+        const errorMessage = parsedCredentials.error.flatten().fieldErrors;
+        const firstError = Object.values(errorMessage)[0]?.[0] ?? "Invalid input";
+        return { error: firstError };
     }
 
     const unverifiedEmailUser = await checkUnverifiedEmailExists(
