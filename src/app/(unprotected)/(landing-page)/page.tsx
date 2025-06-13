@@ -433,7 +433,7 @@ export default function LandingPage() {
                         <div className="mt-8">
                             <Link href="/signup">
                                 <Button className="bg-rose-500 hover:bg-rose-600 text-white h-12 px-8 text-base">
-                                    Get Started Free{" "}
+                                    Get Started{" "}
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>

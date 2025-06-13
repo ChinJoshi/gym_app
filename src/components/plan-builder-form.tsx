@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import buildPlan from "@/actions/build-plan";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, Minus, Plus } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
     Command,
@@ -39,6 +39,8 @@ import {
     CommandItem,
     CommandList,
 } from "./ui/command";
+import { PlusButton } from "./ui/plus-button";
+import { MinusButton } from "./ui/minus-button";
 
 export default function PlanBuilderForm(props: {
     exercises: {
@@ -204,8 +206,7 @@ export default function PlanBuilderForm(props: {
                                                                         {...field}
                                                                     />
                                                                 </FormControl> */}
-                                                                    <Button
-                                                                        type="button"
+                                                                    <PlusButton
                                                                         onClick={() => {
                                                                             exercises_field_array.insert(
                                                                                 exercise_index +
@@ -226,12 +227,8 @@ export default function PlanBuilderForm(props: {
                                                                                 }
                                                                             );
                                                                         }}
-                                                                    >
-                                                                        <Plus />
-                                                                    </Button>
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="destructive"
+                                                                    />
+                                                                    <MinusButton
                                                                         onClick={() => {
                                                                             if (
                                                                                 exercises_field_array
@@ -244,9 +241,7 @@ export default function PlanBuilderForm(props: {
                                                                                 );
                                                                             }
                                                                         }}
-                                                                    >
-                                                                        <Minus />
-                                                                    </Button>
+                                                                    />
                                                                 </div>
                                                             </FormItem>
 
@@ -259,7 +254,12 @@ export default function PlanBuilderForm(props: {
                                                     );
                                                 }}
                                             />
-                                            <hr />
+                                            {exercises_field_array.fields
+                                                .length -
+                                                1 !=
+                                                exercise_index && (
+                                                <hr className="bg-primary border-2" />
+                                            )}
                                         </div>
                                     )
                                 )}
@@ -330,8 +330,8 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                             return (
                                 <div>
                                     <FormItem>
-                                        <div className="flex items-center">
-                                            <FormLabel>Weight </FormLabel>
+                                        <div className="flex items-center text-nowrap">
+                                            <FormLabel>Weight (lb) </FormLabel>
                                         </div>
                                         <FormControl className="max-w-20">
                                             <Input {...field} placeholder="0" />
@@ -349,8 +349,8 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                             return (
                                 <div>
                                     <FormItem>
-                                        <div className="flex items-center">
-                                            <FormLabel>Duration </FormLabel>
+                                        <div className="flex items-center text-nowrap">
+                                            <FormLabel>Duration (s)</FormLabel>
                                         </div>
                                         <FormControl className="max-w-20">
                                             <Input {...field} placeholder="0" />
@@ -361,8 +361,7 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                         }}
                     />
                     <div className="flex flex-row gap-3">
-                        <Button
-                            type="button"
+                        <PlusButton
                             onClick={() => {
                                 sets_field_array.insert(set_index + 1, {
                                     reps: "",
@@ -370,20 +369,14 @@ function NestedSets({ exercise_index }: { exercise_index: number }) {
                                     duration: "",
                                 });
                             }}
-                        >
-                            <Plus />
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="destructive"
+                        />
+                        <MinusButton
                             onClick={() => {
                                 if (sets_field_array.fields.length > 1) {
                                     sets_field_array.remove(set_index);
                                 }
                             }}
-                        >
-                            <Minus />
-                        </Button>
+                        />
                     </div>
                 </div>
             ))}

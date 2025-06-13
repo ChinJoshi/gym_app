@@ -26,8 +26,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, Plus, Minus } from "lucide-react";
+import { Check, ChevronsUpDown, Ellipsis } from "lucide-react";
+import { PlusButton } from "@/components/ui/plus-button";
+import { MinusButton } from "@/components/ui/minus-button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import {
     Command,
     CommandEmpty,
@@ -211,8 +219,7 @@ export default function SessionExecutionForm(props: {
                                                                         {...field}
                                                                     /> */}
                                                                     </FormControl>
-                                                                    <Button
-                                                                        type="button"
+                                                                    <PlusButton
                                                                         onClick={() => {
                                                                             exercises_field_array.insert(
                                                                                 exercise_index +
@@ -235,12 +242,8 @@ export default function SessionExecutionForm(props: {
                                                                                 }
                                                                             );
                                                                         }}
-                                                                    >
-                                                                        <Plus />
-                                                                    </Button>
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="destructive"
+                                                                    />
+                                                                    <MinusButton
                                                                         onClick={() => {
                                                                             if (
                                                                                 exercises_field_array
@@ -253,9 +256,7 @@ export default function SessionExecutionForm(props: {
                                                                                 );
                                                                             }
                                                                         }}
-                                                                    >
-                                                                        <Minus />
-                                                                    </Button>
+                                                                    />
                                                                 </div>
                                                             </FormItem>
 
@@ -271,7 +272,12 @@ export default function SessionExecutionForm(props: {
                                                     );
                                                 }}
                                             />
-                                            <hr />
+                                            {exercises_field_array.fields
+                                                .length -
+                                                1 !=
+                                                exercise_index && (
+                                                <hr className="bg-primary border-2" />
+                                            )}
                                         </div>
                                     )
                                 )}
@@ -332,7 +338,7 @@ function NestedSets({
                                         <div className="flex items-center">
                                             <FormLabel>Reps </FormLabel>
                                         </div>
-                                        <FormControl className="max-w-20">
+                                        <FormControl>
                                             <Input {...field} placeholder="0" />
                                         </FormControl>
                                     </FormItem>
@@ -349,7 +355,9 @@ function NestedSets({
                                 <div>
                                     <FormItem>
                                         <div className="flex items-center">
-                                            <FormLabel>Weight </FormLabel>
+                                            <FormLabel className="text-nowrap">
+                                                Weight (lb){" "}
+                                            </FormLabel>
                                         </div>
                                         <FormControl>
                                             <Input {...field} placeholder="0" />
@@ -368,7 +376,9 @@ function NestedSets({
                                 <div>
                                     <FormItem>
                                         <div className="flex items-center">
-                                            <FormLabel>Duration </FormLabel>
+                                            <FormLabel className="text-nowrap">
+                                                Duration (s)
+                                            </FormLabel>
                                         </div>
                                         <FormControl>
                                             <Input {...field} placeholder="0" />
@@ -378,31 +388,7 @@ function NestedSets({
                             );
                         }}
                     />
-                    <div className="flex flex-row gap-3">
-                        <Button
-                            type="button"
-                            onClick={() => {
-                                sets_field_array.insert(set_index + 1, {
-                                    reps: "",
-                                    weight: "",
-                                    duration: "",
-                                    completed: "false",
-                                });
-                            }}
-                        >
-                            <Plus />
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            onClick={() => {
-                                if (sets_field_array.fields.length > 1) {
-                                    sets_field_array.remove(set_index);
-                                }
-                            }}
-                        >
-                            <Minus />
-                        </Button>
+                    <div className="flex flex-row gap-1">
                         <FormField
                             control={form.control}
                             name={`exercises.${exercise_index}.sets.${set_index}.completed`}
@@ -457,6 +443,41 @@ function NestedSets({
                                 );
                             }}
                         />
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost">
+                                    <Ellipsis />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem
+                                    onClick={() => {
+                                        sets_field_array.insert(set_index + 1, {
+                                            reps: "",
+                                            weight: "",
+                                            duration: "",
+                                            completed: "false",
+                                        });
+                                    }}
+                                >
+                                    Insert Set Below
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => {
+                                        if (
+                                            sets_field_array.fields.length > 1
+                                        ) {
+                                            sets_field_array.remove(set_index);
+                                        }
+                                    }}
+                                    disabled={
+                                        sets_field_array.fields.length <= 1
+                                    }
+                                >
+                                    Remove Set
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
             ))}

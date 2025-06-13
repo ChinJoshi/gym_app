@@ -26,7 +26,8 @@ import {
 } from "@/db/queries";
 import { createClient } from "@/lib/supabase/server";
 import { StartSessionButton } from "@/components/start-session-button";
-import { Plus, MoreVertical } from "lucide-react";
+import { PlusButton } from "@/components/ui/plus-button";
+import { MoreVertical } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -67,9 +68,7 @@ export default async function Page() {
                             <CardTitle className="flex flex-row justify-between items-center">
                                 <div>Plans</div>
                                 <Link href="/plan/build">
-                                    <Button className="font-extrabold">
-                                        <Plus />
-                                    </Button>
+                                    <PlusButton />
                                 </Link>
                             </CardTitle>
                         </CardHeader>
@@ -136,9 +135,7 @@ export default async function Page() {
                             <CardTitle className="flex flex-row justify-between items-center">
                                 <div>Custom Exercises</div>
                                 <Link href="/exercise/create">
-                                    <Button className="font-extrabold">
-                                        <Plus />
-                                    </Button>
+                                    <PlusButton />
                                 </Link>
                             </CardTitle>
                         </CardHeader>

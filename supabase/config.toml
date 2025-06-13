@@ -145,7 +145,11 @@ otp_expiry = 3600
 
 [auth.email.template.confirmation]
 subject = "Email Verification"
-content_path = "./supabase/email_templates/email_verification.html"
+content_path = "./supabase/email-templates/email-verification.html"
+
+[auth.email.template.recovery]
+subject = "Reset Your Password"
+content_path = "./supabase/email-templates/reset-password.html"
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]

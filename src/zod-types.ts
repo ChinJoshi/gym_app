@@ -1,11 +1,18 @@
 import { z } from "zod";
 
+export const emailString = z.string().email()
+export const passwordString = z.string().min(8, { message: "Password must be at least 8 characters long" })
+
+export const emailSchema = z.object({email:emailString})
+
+export const passwordSchema = z.object({password:passwordString})
+
 export const loginUser = z.object({
-    email: z.string().email(),
-    password: z
-        .string()
-        .min(8, { message: "Password must be at least 8 characters long" }),
+    email: emailString,
+    password: passwordString,
 });
+
+
 
 const numericString = (message: string) => z.string().regex(/^\d*$/, message);
 const booleanString = (message: string) => z.string().regex(/^(true|false)$/, message)
