@@ -21,6 +21,7 @@ export const plans = pgTable("plans", {
         .references(() => users.id),
     name: varchar("name", { length: 255 }).notNull(),
     created_at: timestamp("created_at").defaultNow().notNull(),
+    updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // --- public.exercises (catalog) ---
@@ -46,6 +47,7 @@ export const planned_exercises = pgTable(
             .notNull()
             .references(() => exercises.id),
         sort_order: integer("sort_order").notNull(),
+        archived: boolean("archived").default(false).notNull(),
     },
     (t) => [unique().on(t.plan_id, t.sort_order)]
 );
@@ -62,6 +64,7 @@ export const planned_sets = pgTable(
         duration: integer("duration"),
         reps: integer("reps").notNull(),
         sort_order: integer("sort_order").notNull(),
+        archived: boolean("archived").default(false).notNull(),
     },
     (t) => [unique().on(t.planned_exercise_id, t.sort_order)]
 );

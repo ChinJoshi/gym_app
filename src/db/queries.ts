@@ -9,10 +9,33 @@ import {
     session_sets,
 } from "@/db/schema";
 import { users } from "@/db/auth.schema";
-import { planBuilder , sessionExecution} from "@/zod-types";
+import { planBuilder , sessionExecution, exerciseCreator, planEditor} from "@/zod-types";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import { eq, desc, asc, isNull, and, sql, or } from "drizzle-orm";
+import { eq, desc, asc, isNull, and, sql, or, inArray } from "drizzle-orm";
+
+export async function getUserExercises(userId: string) {
+    const results = await db
+        .select()
+        .from(exercises)
+        .where(eq(exercises.user_id, userId));
+    return results;
+}
+
+export async function createExercise(
+    exercise: z.infer<typeof exerciseCreator>,
+    user_id: string
+) {
+    type newExercise = typeof exercises.$inferInsert;
+    const newExerciseData: newExercise = {
+        name: exercise.name,
+        muscle_group: exercise.muscle_group,
+        equipment: exercise.equipment,
+        is_custom: true,
+        user_id: user_id,
+    };
+    await db.insert(exercises).values(newExerciseData);
+}
 
 export async function createPlan(
     plan: z.infer<typeof planBuilder>,
@@ -179,3 +202,132 @@ export async function getSessionVolumesByPlan(planId: string){
     return results
 }
 
+
+export async function getPlanForEdit(planId: string, userId: string) {
+    const result = await db
+        .select()
+        .from(plans)
+        .where(and(eq(plans.id, planId), eq(plans.user_id, userId)))
+        .leftJoin(
+            planned_exercises,
+            and(
+                eq(planned_exercises.plan_id, plans.id),
+                eq(planned_exercises.archived, false)
+            )
+        )
+        .leftJoin(exercises, eq(planned_exercises.exercise_id, exercises.id))
+        .leftJoin(
+            planned_sets,
+            and(
+                eq(planned_sets.planned_exercise_id, planned_exercises.id),
+                eq(planned_sets.archived, false)
+            )
+        )
+        .orderBy(
+            asc(planned_exercises.sort_order),
+            asc(planned_sets.sort_order)
+        );
+    if (result.length === 0) {
+        return null;
+    }
+    return result;
+}
+
+export async function updatePlanQuery(
+    plan: z.infer<typeof planEditor>,
+    planId: string
+) {
+    return await db.transaction(async (tx) => {
+        await tx
+            .update(plans)
+            .set({ name: plan.plan_name, updated_at: new Date() })
+            .where(eq(plans.id, planId));
+
+        const exerciseIdsToKeep: string[] = [];
+        const setIdsToKeep: string[] = [];
+
+        for (const [exercise_index, exercise] of plan.exercises.entries()) {
+            let plannedExerciseId = exercise.id;
+            if (plannedExerciseId.startsWith("new-")) {
+                plannedExerciseId = uuidv4();
+                await tx.insert(planned_exercises).values({
+                    id: plannedExerciseId,
+                    plan_id: planId,
+                    exercise_id: exercise.exerciseId,
+                    sort_order: exercise_index,
+                });
+            } else {
+                await tx
+                    .update(planned_exercises)
+                    .set({ sort_order: exercise_index })
+                    .where(eq(planned_exercises.id, plannedExerciseId));
+            }
+            exerciseIdsToKeep.push(plannedExerciseId);
+
+            for (const [set_index, set] of exercise.sets.entries()) {
+                let plannedSetId = set.id;
+                if (!plannedSetId || plannedSetId.startsWith("new-")) {
+                    plannedSetId = uuidv4();
+                    await tx.insert(planned_sets).values({
+                        id: plannedSetId,
+                        planned_exercise_id: plannedExerciseId,
+                        reps: Number(set.reps),
+                        weight: set.weight ? Number(set.weight) : null,
+                        duration: set.duration ? Number(set.duration) : null,
+                        sort_order: set_index,
+                    });
+                } else {
+                    await tx
+                        .update(planned_sets)
+                        .set({
+                            reps: Number(set.reps),
+                            weight: set.weight ? Number(set.weight) : null,
+                            duration: set.duration
+                                ? Number(set.duration)
+                                : null,
+                            sort_order: set_index,
+                        })
+                        .where(eq(planned_sets.id, plannedSetId));
+                }
+                setIdsToKeep.push(plannedSetId);
+            }
+        }
+
+        const allDbExercises = await tx.select({id: planned_exercises.id}).from(planned_exercises).where(eq(planned_exercises.plan_id, planId))
+        const allDbSets = await tx.select({id: planned_sets.id}).from(planned_sets).leftJoin(planned_exercises, eq(planned_sets.planned_exercise_id, planned_exercises.id)).where(eq(planned_exercises.plan_id, planId))
+
+        const exercisesToArchive = allDbExercises.filter(e => !exerciseIdsToKeep.includes(e.id)).map(e => e.id)
+        const setsToArchive = allDbSets.filter(s => !setIdsToKeep.includes(s.id)).map(s => s.id)
+
+        if (exercisesToArchive.length > 0) {
+            await tx
+                .update(planned_exercises)
+                .set({ archived: true })
+                .where(inArray(planned_exercises.id, exercisesToArchive));
+        }
+
+        if (setsToArchive.length > 0) {
+            await tx
+                .update(planned_sets)
+                .set({ archived: true })
+                .where(inArray(planned_sets.id, setsToArchive));
+        }
+    });
+}
+
+export async function getExerciseForEdit(exerciseId: string, userId: string) {
+    const result = await db
+        .select()
+        .from(exercises)
+        .where(
+            and(
+                eq(exercises.id, exerciseId),
+                eq(exercises.user_id, userId),
+                eq(exercises.is_custom, true)
+            )
+        );
+    if (result.length === 0) {
+        return null;
+    }
+    return result[0];
+}

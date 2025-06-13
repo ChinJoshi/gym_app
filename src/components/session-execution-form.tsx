@@ -1,5 +1,3 @@
-// according to: https://news.ycombinator.com/item?id=41978038
-// the general pattern seems to be, allow the user to input anything in a field, and show validation issues after
 "use client";
 import {
     useForm,
@@ -27,7 +25,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, Plus, Minus } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
@@ -39,10 +36,9 @@ import {
     CommandItem,
     CommandList,
 } from "./ui/command";
-import { useTimer, Timer } from "react-use-precision-timer";
 import endSession from "@/actions/end-session";
-import React, { useState } from "react";
-import DigitalStopwatch from "@/components/digital-stopwatch";
+import React, { useRef } from "react";
+import StopwatchController, { StopwatchRef } from "./stopwatch-controller";
 
 export default function SessionExecutionForm(props: {
     plan: z.infer<typeof sessionExecution>;
@@ -61,9 +57,30 @@ export default function SessionExecutionForm(props: {
         defaultValues: props.plan,
     });
 
+    const hasRestored = useRef(false);
+
+    if (!hasRestored.current) {
+        // Restore from localStorage immediately (before render)
+        const saved =
+            typeof window !== "undefined" &&
+            localStorage.getItem(`sessionExecutionForm-${props.sessionId}`);
+
+        if (saved) {
+            form.reset(JSON.parse(saved));
+        }
+        hasRestored.current = true;
+    }
+
     const exercises_field_array = useFieldArray({
         control: form.control,
         name: "exercises",
+    });
+
+    form.watch((value) => {
+        localStorage.setItem(
+            `sessionExecutionForm-${props.sessionId}`,
+            JSON.stringify(value)
+        );
     });
 
     const onSubmitSuccess: SubmitHandler<
@@ -71,16 +88,12 @@ export default function SessionExecutionForm(props: {
     > = async (data) => {
         await endSession(data, props.sessionId);
     };
-    const [elapsedTime, setElapsedTime] = useState(0);
-    const timer = useTimer({ delay: 10 }, () => {
-        setElapsedTime(timer.getElapsedStartedTime());
-    });
+    const timerRef = useRef<StopwatchRef>(null);
 
     return (
         <Form {...form}>
             <div className="flex justify-center mb-8">
-                <DigitalStopwatch elapsedMs={elapsedTime}></DigitalStopwatch>
-                {/* <Stopwatch elapsedMs={elapsedTime}></Stopwatch> */}
+                <StopwatchController ref={timerRef} />
             </div>
             <Card className="min-w-fit">
                 <CardHeader>
@@ -88,9 +101,8 @@ export default function SessionExecutionForm(props: {
                         {props.plan.plan_name}
                     </CardTitle>
                     <CardDescription className="wrap-anywhere">
-                        Executing a session of your &quot;
-                        {props.plan.plan_name}
-                        &quot; plan
+                        Executing a session of your "{props.plan.plan_name}"
+                        plan
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -251,9 +263,8 @@ export default function SessionExecutionForm(props: {
                                                                 exercise_index={
                                                                     exercise_index
                                                                 }
-                                                                timer={timer}
-                                                                setElapsedTime={
-                                                                    setElapsedTime
+                                                                timerRef={
+                                                                    timerRef
                                                                 }
                                                             />
                                                         </div>
@@ -290,12 +301,10 @@ export default function SessionExecutionForm(props: {
 
 function NestedSets({
     exercise_index,
-    timer,
-    setElapsedTime,
+    timerRef,
 }: {
     exercise_index: number;
-    timer: Timer;
-    setElapsedTime: React.Dispatch<React.SetStateAction<number>>;
+    timerRef: React.RefObject<StopwatchRef | null>;
 }) {
     const form = useFormContext<z.infer<typeof sessionExecution>>();
     const sets_field_array = useFieldArray({
@@ -416,18 +425,17 @@ function NestedSets({
                                                     }
                                                     onClick={() => {
                                                         if (
-                                                            field.value ==
+                                                            field.value ===
                                                             "true"
                                                         ) {
-                                                            timer.stop();
-                                                            setElapsedTime(0);
+                                                            timerRef.current?.stop();
                                                         } else {
-                                                            setElapsedTime(0);
-                                                            timer.start();
+                                                            timerRef.current?.stop();
+                                                            timerRef.current?.start();
                                                         }
                                                         form.setValue(
                                                             `exercises.${exercise_index}.sets.${set_index}.completed`,
-                                                            field.value ==
+                                                            field.value ===
                                                                 "true"
                                                                 ? "false"
                                                                 : "true"

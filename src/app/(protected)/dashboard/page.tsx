@@ -22,10 +22,17 @@ import {
     getSessions,
     getSessionVolumesByPlan,
     getSessionInProgress,
+    getUserExercises,
 } from "@/db/queries";
 import { createClient } from "@/lib/supabase/server";
 import { StartSessionButton } from "@/components/start-session-button";
-import { Plus } from "lucide-react";
+import { Plus, MoreVertical } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import MiniChart from "@/components/mini-volume-chart";
 
 //TODO: put plan cards in a suspense
@@ -36,6 +43,7 @@ export default async function Page() {
     const plans = await getPlans(userId);
     const executedSessions = await getSessions(userId);
     const sessionInProgress = await getSessionInProgress(userId);
+    const userExercises = await getUserExercises(userId);
 
     // your plans
     // your sessions
@@ -71,10 +79,29 @@ export default async function Page() {
                                     await getPlannedExercises(plan.id);
                                 return (
                                     <Card key={plan.id} className="my-3">
-                                        <CardHeader>
+                                        <CardHeader className="w-full flex flex-row justify-between items-center">
                                             <CardTitle className="wrap-anywhere">
                                                 {plan.name}
                                             </CardTitle>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                    >
+                                                        <MoreVertical />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <Link
+                                                        href={`/plan/edit/${plan.id}`}
+                                                    >
+                                                        <DropdownMenuItem>
+                                                            Edit Plan
+                                                        </DropdownMenuItem>
+                                                    </Link>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </CardHeader>
                                         <CardContent>
                                             {plannedExercises.map(
@@ -102,6 +129,48 @@ export default async function Page() {
                                     </Card>
                                 );
                             })}
+                        </CardContent>
+                    </Card>
+                    <Card className="w-full mt-4">
+                        <CardHeader>
+                            <CardTitle className="flex flex-row justify-between items-center">
+                                <div>Custom Exercises</div>
+                                <Link href="/exercise/create">
+                                    <Button className="font-extrabold">
+                                        <Plus />
+                                    </Button>
+                                </Link>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {userExercises.map((exercise) => (
+                                <Card key={exercise.id} className="my-3">
+                                    <CardHeader className="w-full flex flex-row justify-between">
+                                        <CardTitle className="wrap-anywhere">
+                                            {exercise.name}
+                                        </CardTitle>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                >
+                                                    <MoreVertical />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <Link
+                                                    href={`/exercise/edit/${exercise.id}`}
+                                                >
+                                                    <DropdownMenuItem>
+                                                        Edit Exercise
+                                                    </DropdownMenuItem>
+                                                </Link>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </CardHeader>
+                                </Card>
+                            ))}
                         </CardContent>
                     </Card>
                 </div>
