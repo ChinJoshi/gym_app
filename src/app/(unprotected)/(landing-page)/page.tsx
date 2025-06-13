@@ -52,7 +52,7 @@ export default function LandingPage() {
                 <div className="relative mx-auto max-w-5xl rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl shadow-rose-500/5">
                     <div className="absolute inset-0 bg-gradient-to-tr from-zinc-900 via-zinc-900/80 to-zinc-900/0 rounded-xl"></div>
                     <Image
-                        src="/gym-app-screenshot.png"
+                        src="/dashboard-screenshot.png"
                         alt="Run Of One App Dashboard"
                         width={1200}
                         height={675}
