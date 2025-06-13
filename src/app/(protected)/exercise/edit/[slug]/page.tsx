@@ -2,8 +2,12 @@ import { getExerciseForEdit } from "@/db/queries";
 import { createClient } from "@/lib/supabase/server";
 import ExerciseEditorForm from "@/components/exercise-editor-form";
 
-export default async function Page({ params }: { params: { slug: string } }) {
-    const { slug } = params;
+export default async function Page({
+    params,
+}: {
+    params: Promise<{ slug: string }>;
+}) {
+    const { slug } = await params;
     const supabase = await createClient();
     const {
         data: { session },
