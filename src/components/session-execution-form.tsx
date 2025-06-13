@@ -101,8 +101,8 @@ export default function SessionExecutionForm(props: {
                         {props.plan.plan_name}
                     </CardTitle>
                     <CardDescription className="wrap-anywhere">
-                        Executing a session of your "{props.plan.plan_name}"
-                        plan
+                        Executing a session of your &quot;{props.plan.plan_name}
+                        &quot; plan
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
