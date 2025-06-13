@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function LandingPage() {
     return (
@@ -430,10 +431,12 @@ export default function LandingPage() {
                             goals.
                         </p>
                         <div className="mt-8">
-                            <Button className="bg-rose-500 hover:bg-rose-600 text-white h-12 px-8 text-base">
-                                Get Started Free{" "}
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
+                            <Link href="/signup">
+                                <Button className="bg-rose-500 hover:bg-rose-600 text-white h-12 px-8 text-base">
+                                    Get Started Free{" "}
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
                         </div>
                         <p className="mt-4 text-sm text-zinc-500">
                             No credit card required. Free plan available with
