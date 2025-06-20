@@ -4,6 +4,7 @@ import {
     SubmitHandler,
     useFieldArray,
     useFormContext,
+    SubmitErrorHandler,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sessionExecution } from "@/zod-types";
@@ -45,8 +46,14 @@ import {
     CommandList,
 } from "./ui/command";
 import endSession from "@/actions/end-session";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import StopwatchController, { StopwatchRef } from "./stopwatch-controller";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function SessionExecutionForm(props: {
     plan: z.infer<typeof sessionExecution>;
@@ -60,24 +67,25 @@ export default function SessionExecutionForm(props: {
         user_id: string | null;
     }[];
 }) {
-    const form = useForm<z.infer<typeof sessionExecution>>({
-        resolver: zodResolver(sessionExecution),
-        defaultValues: props.plan,
-    });
-
-    const hasRestored = useRef(false);
-
-    if (!hasRestored.current) {
-        // Restore from localStorage immediately (before render)
+    // // ✅ This callback runs only once, on the very first render:
+    const [initialValues] = useState(() => {
         const saved =
             typeof window !== "undefined" &&
             localStorage.getItem(`sessionExecutionForm-${props.sessionId}`);
 
         if (saved) {
-            form.reset(JSON.parse(saved));
+            return saved;
+        } else {
+            return undefined;
         }
-        hasRestored.current = true;
-    }
+    });
+
+    const [accordionState, setAccordionState] = useState(["0"]);
+
+    const form = useForm<z.infer<typeof sessionExecution>>({
+        resolver: zodResolver(sessionExecution),
+        defaultValues: initialValues ? JSON.parse(initialValues) : props.plan,
+    });
 
     const exercises_field_array = useFieldArray({
         control: form.control,
@@ -96,6 +104,20 @@ export default function SessionExecutionForm(props: {
     > = async (data) => {
         await endSession(data, props.sessionId);
     };
+
+    const onInvalid: SubmitErrorHandler<
+        z.infer<typeof sessionExecution>
+    > = async (errors) => {
+        errors.exercises?.forEach!((error, error_index) => {
+            if (error) {
+                if (!accordionState.includes(error_index.toString())) {
+                    accordionState.push(error_index.toString());
+                    setAccordionState(accordionState);
+                }
+            }
+        });
+    };
+
     const timerRef = useRef<StopwatchRef>(null);
 
     return (
@@ -114,173 +136,277 @@ export default function SessionExecutionForm(props: {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={form.handleSubmit(onSubmitSuccess)}>
+                    <form
+                        onSubmit={form.handleSubmit(onSubmitSuccess, onInvalid)}
+                    >
                         <div className="flex flex-col gap-6">
-                            <div className="flex flex-col gap-6">
-                                {exercises_field_array.fields.map(
-                                    (exercise, exercise_index) => (
-                                        <div
-                                            key={exercise.id}
-                                            className="flex flex-col gap-6"
+                            <div className="flex flex-col gap-6 relative">
+                                {/* Hidden reference layout to maintain consistent width */}
+                                <div className="invisible max-h-0 -mb-6">
+                                    <div className="flex flex-row gap-3 my-2">
+                                        <Button
+                                            variant="outline"
+                                            className="w-40 sm:w-60 justify-between"
                                         >
-                                            <FormField
-                                                // key={exercise.id}
-                                                control={form.control}
-                                                name={`exercises.${exercise_index}.exercise`}
-                                                render={({ field }) => {
-                                                    return (
-                                                        <div>
-                                                            <FormItem>
-                                                                <div className="flex items-center">
-                                                                    <FormLabel>
-                                                                        Exercise{" "}
-                                                                        {exercise_index +
-                                                                            1}
-                                                                    </FormLabel>
-                                                                </div>
-                                                                <div className="flex flex-row gap-3 my-2">
-                                                                    <FormControl>
-                                                                        <Popover>
-                                                                            <PopoverTrigger
-                                                                                asChild
-                                                                            >
-                                                                                <FormControl>
-                                                                                    <Button
-                                                                                        variant="outline"
-                                                                                        role="combobox"
-                                                                                        className={cn(
-                                                                                            "w-40 sm:w-60 justify-between",
-                                                                                            !field.value &&
-                                                                                                "text-muted-foreground"
-                                                                                        )}
-                                                                                    >
-                                                                                        <span className="truncate">
-                                                                                            {field.value
-                                                                                                ? field.value
-                                                                                                : "Select exercise"}
-                                                                                        </span>
-                                                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                                                    </Button>
-                                                                                </FormControl>
-                                                                            </PopoverTrigger>
-                                                                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                                                                                <Command>
-                                                                                    <CommandInput placeholder="Search exercises..." />
-                                                                                    <CommandList>
-                                                                                        <CommandEmpty>
-                                                                                            No
-                                                                                            exercise
-                                                                                            found.
-                                                                                        </CommandEmpty>
-                                                                                        <CommandGroup>
-                                                                                            {props.exercises.map(
-                                                                                                (
-                                                                                                    exercise
-                                                                                                ) => (
-                                                                                                    <CommandItem
-                                                                                                        value={
-                                                                                                            exercise.name
-                                                                                                        }
-                                                                                                        key={
-                                                                                                            exercise.id
-                                                                                                        }
-                                                                                                        onSelect={() => {
-                                                                                                            form.setValue(
-                                                                                                                `exercises.${exercise_index}.exercise`,
-                                                                                                                exercise.name
-                                                                                                            );
-                                                                                                            form.setValue(
-                                                                                                                `exercises.${exercise_index}.exerciseId`,
-                                                                                                                exercise.id
-                                                                                                            );
-                                                                                                        }}
-                                                                                                    >
-                                                                                                        {
-                                                                                                            exercise.name
-                                                                                                        }
-                                                                                                        <Check
-                                                                                                            className={cn(
-                                                                                                                "ml-auto",
-                                                                                                                exercise.name ===
-                                                                                                                    field.value
-                                                                                                                    ? "opacity-100"
-                                                                                                                    : "opacity-0"
-                                                                                                            )}
-                                                                                                        />
-                                                                                                    </CommandItem>
-                                                                                                )
-                                                                                            )}
-                                                                                        </CommandGroup>
-                                                                                    </CommandList>
-                                                                                </Command>
-                                                                            </PopoverContent>
-                                                                        </Popover>
-                                                                        {/* <Input
-                                                                        {...field}
-                                                                    /> */}
-                                                                    </FormControl>
-                                                                    <PlusButton
-                                                                        onClick={() => {
-                                                                            exercises_field_array.insert(
-                                                                                exercise_index +
-                                                                                    1,
-                                                                                {
-                                                                                    exercise:
-                                                                                        "",
-                                                                                    exerciseId:
-                                                                                        "",
-                                                                                    sets: [
-                                                                                        {
-                                                                                            reps: "",
-                                                                                            weight: "",
-                                                                                            duration:
-                                                                                                "",
-                                                                                            completed:
-                                                                                                "false",
-                                                                                        },
-                                                                                    ],
-                                                                                }
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                    <MinusButton
-                                                                        onClick={() => {
-                                                                            if (
-                                                                                exercises_field_array
-                                                                                    .fields
-                                                                                    .length >
-                                                                                1
-                                                                            ) {
-                                                                                exercises_field_array.remove(
-                                                                                    exercise_index
-                                                                                );
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                </div>
-                                                            </FormItem>
-
-                                                            <NestedSets
-                                                                exercise_index={
-                                                                    exercise_index
-                                                                }
-                                                                timerRef={
-                                                                    timerRef
-                                                                }
-                                                            />
-                                                        </div>
-                                                    );
-                                                }}
-                                            />
-                                            {exercises_field_array.fields
-                                                .length -
-                                                1 !=
-                                                exercise_index && (
-                                                <hr className="bg-primary border-2" />
-                                            )}
+                                            <span className="truncate">
+                                                Sample Exercise Name
+                                            </span>
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                        <PlusButton />
+                                        <MinusButton />
+                                    </div>
+                                    <div className="flex flex-row gap-3 items-end my-2">
+                                        <div>
+                                            <div className="flex items-center">
+                                                <FormLabel>Reps </FormLabel>
+                                            </div>
+                                            <Input placeholder="0" />
                                         </div>
-                                    )
-                                )}
+                                        <div>
+                                            <div className="flex items-center">
+                                                <FormLabel className="text-nowrap">
+                                                    Weight (lb){" "}
+                                                </FormLabel>
+                                            </div>
+                                            <Input placeholder="0" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center">
+                                                <FormLabel className="text-nowrap">
+                                                    Duration (s)
+                                                </FormLabel>
+                                            </div>
+                                            <Input placeholder="0" />
+                                        </div>
+                                        <div className="flex flex-row gap-1">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                            >
+                                                <Check />
+                                            </Button>
+                                            <Button variant="ghost">
+                                                <Ellipsis />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <Accordion
+                                    type="multiple"
+                                    defaultValue={accordionState}
+                                    value={accordionState}
+                                    onValueChange={(value) => {
+                                        setAccordionState(value);
+                                        console.log(value);
+                                    }}
+                                >
+                                    {exercises_field_array.fields.map(
+                                        (exercise, exercise_index) => (
+                                            <div
+                                                key={exercise.id}
+                                                className="flex flex-col gap-6"
+                                            >
+                                                <AccordionItem
+                                                    key={exercise.id}
+                                                    value={exercise_index.toString()}
+                                                >
+                                                    <FormField
+                                                        key={exercise.id}
+                                                        control={form.control}
+                                                        name={`exercises.${exercise_index}.exercise`}
+                                                        render={({ field }) => {
+                                                            return (
+                                                                <div>
+                                                                    <AccordionTrigger>
+                                                                        <FormLabel>
+                                                                            {field.value ||
+                                                                                "Select Exercise"}
+                                                                        </FormLabel>
+                                                                    </AccordionTrigger>
+                                                                    <AccordionContent>
+                                                                        <FormItem>
+                                                                            <div className="flex flex-row gap-3 my-2">
+                                                                                <Popover>
+                                                                                    <PopoverTrigger
+                                                                                        asChild
+                                                                                    >
+                                                                                        <Button
+                                                                                            variant="outline"
+                                                                                            role="combobox"
+                                                                                            className={cn(
+                                                                                                "w-40 sm:w-60 justify-between",
+                                                                                                !field.value &&
+                                                                                                    "text-muted-foreground"
+                                                                                            )}
+                                                                                        >
+                                                                                            <FormControl>
+                                                                                                <span className="truncate">
+                                                                                                    {field.value
+                                                                                                        ? field.value
+                                                                                                        : "Select exercise"}
+                                                                                                </span>
+                                                                                            </FormControl>
+
+                                                                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                                                        </Button>
+                                                                                    </PopoverTrigger>
+
+                                                                                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                                                                        <Command>
+                                                                                            <CommandInput placeholder="Search exercises..." />
+                                                                                            <CommandList>
+                                                                                                <CommandEmpty>
+                                                                                                    No
+                                                                                                    exercise
+                                                                                                    found.
+                                                                                                </CommandEmpty>
+                                                                                                <CommandGroup>
+                                                                                                    {props.exercises.map(
+                                                                                                        (
+                                                                                                            exercise
+                                                                                                        ) => (
+                                                                                                            <CommandItem
+                                                                                                                value={
+                                                                                                                    exercise.name
+                                                                                                                }
+                                                                                                                key={
+                                                                                                                    exercise.id
+                                                                                                                }
+                                                                                                                onSelect={() => {
+                                                                                                                    form.setValue(
+                                                                                                                        `exercises.${exercise_index}.exercise`,
+                                                                                                                        exercise.name
+                                                                                                                    );
+                                                                                                                    form.setValue(
+                                                                                                                        `exercises.${exercise_index}.exerciseId`,
+                                                                                                                        exercise.id
+                                                                                                                    );
+                                                                                                                }}
+                                                                                                            >
+                                                                                                                {
+                                                                                                                    exercise.name
+                                                                                                                }
+                                                                                                                <Check
+                                                                                                                    className={cn(
+                                                                                                                        "ml-auto",
+                                                                                                                        exercise.name ===
+                                                                                                                            field.value
+                                                                                                                            ? "opacity-100"
+                                                                                                                            : "opacity-0"
+                                                                                                                    )}
+                                                                                                                />
+                                                                                                            </CommandItem>
+                                                                                                        )
+                                                                                                    )}
+                                                                                                </CommandGroup>
+                                                                                            </CommandList>
+                                                                                        </Command>
+                                                                                    </PopoverContent>
+                                                                                </Popover>
+
+                                                                                <PlusButton
+                                                                                    onClick={() => {
+                                                                                        exercises_field_array.insert(
+                                                                                            exercise_index +
+                                                                                                1,
+                                                                                            {
+                                                                                                exercise:
+                                                                                                    "",
+                                                                                                exerciseId:
+                                                                                                    "",
+                                                                                                sets: [
+                                                                                                    {
+                                                                                                        reps: "",
+                                                                                                        weight: "",
+                                                                                                        duration:
+                                                                                                            "",
+                                                                                                        completed:
+                                                                                                            "false",
+                                                                                                    },
+                                                                                                ],
+                                                                                            }
+                                                                                        );
+                                                                                    }}
+                                                                                />
+                                                                                <MinusButton
+                                                                                    onClick={() => {
+                                                                                        if (
+                                                                                            exercises_field_array
+                                                                                                .fields
+                                                                                                .length >
+                                                                                            1
+                                                                                        ) {
+                                                                                            let newAccordianState =
+                                                                                                accordionState
+                                                                                                    .filter(
+                                                                                                        (
+                                                                                                            item
+                                                                                                        ) =>
+                                                                                                            item !==
+                                                                                                            exercise_index.toString()
+                                                                                                    )
+                                                                                                    .map(
+                                                                                                        (
+                                                                                                            item
+                                                                                                        ) => {
+                                                                                                            if (
+                                                                                                                Number(
+                                                                                                                    item
+                                                                                                                ) >
+                                                                                                                exercise_index
+                                                                                                            ) {
+                                                                                                                return (
+                                                                                                                    Number(
+                                                                                                                        item
+                                                                                                                    ) -
+                                                                                                                    1
+                                                                                                                ).toString();
+                                                                                                            } else {
+                                                                                                                return item;
+                                                                                                            }
+                                                                                                        }
+                                                                                                    );
+                                                                                            if (
+                                                                                                newAccordianState.length <
+                                                                                                1
+                                                                                            ) {
+                                                                                                newAccordianState =
+                                                                                                    [
+                                                                                                        "0",
+                                                                                                    ];
+                                                                                            }
+                                                                                            setAccordionState(
+                                                                                                newAccordianState
+                                                                                            );
+                                                                                            exercises_field_array.remove(
+                                                                                                exercise_index
+                                                                                            );
+                                                                                        }
+                                                                                    }}
+                                                                                />
+                                                                            </div>
+                                                                        </FormItem>
+
+                                                                        <NestedSets
+                                                                            exercise_index={
+                                                                                exercise_index
+                                                                            }
+                                                                            timerRef={
+                                                                                timerRef
+                                                                            }
+                                                                        />
+                                                                    </AccordionContent>
+                                                                </div>
+                                                            );
+                                                        }}
+                                                    />
+                                                </AccordionItem>
+                                            </div>
+                                        )
+                                    )}
+                                </Accordion>
                                 {form.formState.errors.root && (
                                     <FormMessage>
                                         {form.formState.errors.root.message}

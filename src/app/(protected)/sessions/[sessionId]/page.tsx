@@ -1,8 +1,9 @@
 import { getPlanFromSessionId, getExercises } from "@/db/queries";
-import SessionExecutionForm from "@/components/session-execution-form";
 import { sessionExecution } from "@/zod-types";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import SessionExecutionFormClientWrapper from "./SessionExecutionFormClientWrapper";
+// import SessionExecutionForm from "@/components/session-execution-form";
 
 //TODO: ensure that the session actually belongs to the user, someone could theoretically "hijack" someones session if they guessed or got their session id
 
@@ -76,7 +77,7 @@ export default async function Page({
     return (
         <div className="flex min-h-svh w-full items-center justify-center">
             <div className="max-w-4xl self-baseline p-4">
-                <SessionExecutionForm
+                <SessionExecutionFormClientWrapper
                     plan={plan}
                     sessionId={sessionId}
                     exercises={exerciseChoices}
