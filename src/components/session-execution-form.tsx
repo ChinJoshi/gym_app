@@ -46,7 +46,7 @@ import {
     CommandList,
 } from "./ui/command";
 import endSession from "@/actions/end-session";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import StopwatchController, { StopwatchRef } from "./stopwatch-controller";
 import {
     Accordion,
@@ -80,6 +80,17 @@ export default function SessionExecutionForm(props: {
         }
     });
 
+    const [initalSessionLengthTimerValue] = useState(() => {
+        const saved = localStorage.getItem(
+            `sessionExecutionForm-${props.sessionId}-sessionLength`
+        );
+        if (saved) {
+            return Number(saved);
+        } else {
+            return 0;
+        }
+    });
+
     const [accordionState, setAccordionState] = useState(["0"]);
 
     const form = useForm<z.infer<typeof sessionExecution>>({
@@ -102,28 +113,47 @@ export default function SessionExecutionForm(props: {
     const onSubmitSuccess: SubmitHandler<
         z.infer<typeof sessionExecution>
     > = async (data) => {
+        setAccordionState([]);
         await endSession(data, props.sessionId);
     };
 
     const onInvalid: SubmitErrorHandler<
         z.infer<typeof sessionExecution>
     > = async (errors) => {
+        const erroredFormAccordianState: Array<string> = [];
         errors.exercises?.forEach!((error, error_index) => {
             if (error) {
-                if (!accordionState.includes(error_index.toString())) {
-                    accordionState.push(error_index.toString());
-                    setAccordionState(accordionState);
-                }
+                erroredFormAccordianState.push(error_index.toString());
             }
         });
+        setAccordionState(erroredFormAccordianState);
     };
 
-    const timerRef = useRef<StopwatchRef>(null);
+    const sessionLengthTimerRef = useRef<StopwatchRef>(null);
+    const restTimerRef = useRef<StopwatchRef>(null);
+
+    // effect is used to start the session timer on page load after components are mounted
+    useEffect(() => {
+        sessionLengthTimerRef.current?.start();
+    }, []);
 
     return (
         <Form {...form}>
-            <div className="flex justify-center mb-8">
-                <StopwatchController ref={timerRef} />
+            <div className="flex justify-center mb-2">
+                <StopwatchController
+                    ref={sessionLengthTimerRef}
+                    label="Session Length"
+                    initialTime={initalSessionLengthTimerValue}
+                    localStorageLocation={`sessionExecutionForm-${props.sessionId}-sessionLength`}
+                    saveRate={1000}
+                />
+            </div>
+            <div className="flex justify-center mb-2">
+                <StopwatchController
+                    ref={restTimerRef}
+                    initialTime={0}
+                    label="Rest Timer"
+                />
             </div>
             <Card className="min-w-fit">
                 <CardHeader>
@@ -232,25 +262,25 @@ export default function SessionExecutionForm(props: {
                                                                                     <PopoverTrigger
                                                                                         asChild
                                                                                     >
-                                                                                        <Button
-                                                                                            variant="outline"
-                                                                                            role="combobox"
-                                                                                            className={cn(
-                                                                                                "w-40 sm:w-60 justify-between",
-                                                                                                !field.value &&
-                                                                                                    "text-muted-foreground"
-                                                                                            )}
-                                                                                        >
-                                                                                            <FormControl>
+                                                                                        <FormControl>
+                                                                                            <Button
+                                                                                                variant="outline"
+                                                                                                role="combobox"
+                                                                                                className={cn(
+                                                                                                    "w-40 sm:w-60 justify-between",
+                                                                                                    !field.value &&
+                                                                                                        "text-muted-foreground"
+                                                                                                )}
+                                                                                            >
                                                                                                 <span className="truncate">
                                                                                                     {field.value
                                                                                                         ? field.value
                                                                                                         : "Select exercise"}
                                                                                                 </span>
-                                                                                            </FormControl>
 
-                                                                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                                                        </Button>
+                                                                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                                                            </Button>
+                                                                                        </FormControl>
                                                                                     </PopoverTrigger>
 
                                                                                     <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
@@ -394,7 +424,7 @@ export default function SessionExecutionForm(props: {
                                                                                 exercise_index
                                                                             }
                                                                             timerRef={
-                                                                                timerRef
+                                                                                restTimerRef
                                                                             }
                                                                         />
                                                                     </AccordionContent>

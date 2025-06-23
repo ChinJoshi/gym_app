@@ -47,7 +47,8 @@ function VerifyContent() {
                 <div className="text-center text-sm text-gray-500">
                     <p>
                         Didn&apos;t receive an email? Check your spam folder or
-                        request a new verification link.
+                        request a new verification link. It is also possible you
+                        alredy have an account.
                     </p>
                 </div>
 

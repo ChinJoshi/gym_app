@@ -438,10 +438,7 @@ export default function LandingPage() {
                                 </Button>
                             </Link>
                         </div>
-                        <p className="mt-4 text-sm text-zinc-500">
-                            No credit card required. Free plan available with
-                            premium upgrades.
-                        </p>
+                        <p className="mt-4 text-sm text-zinc-500">Free.</p>
                     </div>
                 </div>
             </section>

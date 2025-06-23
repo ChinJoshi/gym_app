@@ -5,10 +5,11 @@ interface DigitalStopwatchProps {
     className?: string;
     /** Milliseconds elapsed */
     elapsedMs: number;
+    label?: string;
 }
 
 const DigitalStopwatch: React.FC<DigitalStopwatchProps> = React.memo(
-    ({ className = "", elapsedMs = 0 }) => {
+    ({ label = "", className = "", elapsedMs = 0 }) => {
         const totalSeconds = Math.floor(elapsedMs / 1000);
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
@@ -24,11 +25,14 @@ const DigitalStopwatch: React.FC<DigitalStopwatchProps> = React.memo(
                 role="timer"
                 aria-label={`Timer showing ${minutes} minutes, ${seconds} seconds, ${milliseconds} milliseconds`}
             >
-                <div className="bg-gray-900 text-white px-6 py-4 rounded-lg shadow-lg font-mono text-4xl font-bold tracking-wider min-w-max">
-                    <span className="tabular-nums">
+                <div className="flex flex-col bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg font-mono text-lg font-bold tracking-wider min-w-max">
+                    <span className="tabular-nums text-center">
                         {formatTime(minutes)}:{formatTime(seconds)}.
                         {formatTime(milliseconds, 3)}
                     </span>
+                    {label && (
+                        <div className="text-sm text-center">{label}</div>
+                    )}
                 </div>
             </div>
         );
@@ -37,4 +41,4 @@ const DigitalStopwatch: React.FC<DigitalStopwatchProps> = React.memo(
 
 DigitalStopwatch.displayName = "DigitalStopwatch";
 
-export default DigitalStopwatch;
+export { DigitalStopwatch };
