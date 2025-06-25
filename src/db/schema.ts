@@ -8,6 +8,7 @@ import {
     unique,
     boolean,
     interval,
+    text
 } from "drizzle-orm/pg-core";
 import { users } from "@/db/auth.schema";
 
@@ -80,7 +81,8 @@ export const sessions = pgTable("sessions", {
         .references(() => plans.id),
     started_at: timestamp("started_at").defaultNow().notNull(),
     completed_at: timestamp("completed_at"),
-    duration: interval("duration")
+    duration: interval("duration"),
+    note: text()
 });
 
 // --- public.session_exercises ---

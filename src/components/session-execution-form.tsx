@@ -46,6 +46,7 @@ import {
     CommandList,
 } from "./ui/command";
 import endSession from "@/actions/end-session";
+import discardSession from "@/actions/discard-session";
 import React, { useEffect, useRef, useState } from "react";
 import StopwatchController, { StopwatchRef } from "./stopwatch-controller";
 import {
@@ -156,19 +157,33 @@ export default function SessionExecutionForm(props: {
                 />
             </div>
             <Card className="min-w-fit">
-                <CardHeader>
-                    <CardTitle className="text-2xl wrap-anywhere">
-                        {props.plan.plan_name}
-                    </CardTitle>
-                    <CardDescription className="wrap-anywhere">
-                        Executing a session of your &quot;{props.plan.plan_name}
-                        &quot; plan
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form
-                        onSubmit={form.handleSubmit(onSubmitSuccess, onInvalid)}
-                    >
+                <form onSubmit={form.handleSubmit(onSubmitSuccess, onInvalid)}>
+                    <CardHeader>
+                        <CardTitle className="text-2xl wrap-anywhere">
+                            {props.plan.plan_name}
+                        </CardTitle>
+                        <CardDescription className="wrap-anywhere">
+                            <FormField
+                                control={form.control}
+                                name={`note`}
+                                render={({ field }) => {
+                                    return (
+                                        <div>
+                                            <FormItem>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        placeholder="Add a note to your session"
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        </div>
+                                    );
+                                }}
+                            />
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
                         <div className="flex flex-col gap-6">
                             <div className="flex flex-col gap-6 relative">
                                 {/* Hidden reference layout to maintain consistent width */}
@@ -444,18 +459,28 @@ export default function SessionExecutionForm(props: {
                                 )}
                             </div>
 
-                            <div className="flex flex-col gap-3">
+                            <div className="flex flex-row gap-3">
                                 <Button
                                     disabled={form.formState.isSubmitting}
                                     type="submit"
-                                    className="w-full"
+                                    className="grow"
                                 >
-                                    End Session
+                                    Save Session
+                                </Button>
+                                <Button
+                                    type="button"
+                                    disabled={form.formState.isSubmitting}
+                                    onClick={() => {
+                                        discardSession(props.sessionId);
+                                    }}
+                                    className="grow"
+                                >
+                                    Discard Session
                                 </Button>
                             </div>
                         </div>
-                    </form>
-                </CardContent>
+                    </CardContent>
+                </form>
             </Card>
         </Form>
     );

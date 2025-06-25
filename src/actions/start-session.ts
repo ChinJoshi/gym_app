@@ -15,7 +15,7 @@ export default async function startSession (prevState: { error: string; } | null
 
     const sessions_in_progress = await getSessionInProgress(userId);
     if (sessions_in_progress.length > 0) {
-        return { error: "Session already in progress" };
+        return { error: "Session already in progress", sessionId:sessions_in_progress[0].id };
     }
     const sessionId = await startSessionDb(planId, userId);
     redirect(`/sessions/${sessionId}`);

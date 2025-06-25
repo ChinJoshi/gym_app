@@ -175,7 +175,7 @@ export async function saveSession(sessionData: z.infer<typeof sessionExecution>,
                 }
             }
 
-            await db.update(sessions).set({completed_at: sql`NOW()`, duration: sql`NOW() - ${sessions.started_at}`}).where(eq(sessions.id,sessionId))
+            await db.update(sessions).set({completed_at: sql`NOW()`, duration: sql`NOW() - ${sessions.started_at}`, note:sessionData.note}).where(eq(sessions.id,sessionId))
 
         }
         catch(error){
@@ -185,6 +185,10 @@ export async function saveSession(sessionData: z.infer<typeof sessionExecution>,
         }
 
     })
+}
+
+export async function discardSession(sessionId: string,userId:string){
+    await db.delete(sessions).where(and(eq(sessions.id,sessionId),eq(sessions.user_id,userId)))
 }
 
 export async function getExercises(userId: string){

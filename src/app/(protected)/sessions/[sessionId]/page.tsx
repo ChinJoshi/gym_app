@@ -72,6 +72,7 @@ export default async function Page({
     const plan = {
         plan_name: planQueryResults[0].plans!.name,
         exercises: planExercises,
+        note: "",
     } satisfies z.infer<typeof sessionExecution>;
 
     return (

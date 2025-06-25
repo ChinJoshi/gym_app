@@ -66,6 +66,7 @@ export const sessionExecution = z.object({
             ),
         })
     ),
+    note:z.string()
 })
 
 export const exerciseCreator = z.object({
